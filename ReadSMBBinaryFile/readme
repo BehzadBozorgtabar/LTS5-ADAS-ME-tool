@@ -1,0 +1,37 @@
+SMB binary file:
+
+| header | first image| header | second image | header | ...
+
+A smb file is an array of image data.
+Every image has a header which is 20 bytes and comes before image data as follow:
+
+//SMBHeader = 20 Bytes
+struct SMBHeader
+{
+    uint32 SMB
+    uint8  dataType
+    uint8  numberColors
+    uint16 typePad
+    uint32 compression
+    uint32 width
+    uint32 height
+}
+
+ROI data is a part of image data (starts from first pixel in the first row)
+After the header we have saved the requested information (ROI data) as follow:
+
+// Roi Data = 44 bytes:
+struct RoiData
+{
+    uint32 cameraIndex;
+    uint64 framenumber;
+    uint64 timeStamp;
+    uint32 boundingbox_left;
+    uint32 boundingbox_top;
+    uint32 boundingbox_width;
+    uint32 boundingbox_height;
+    double camera_angle;
+}
+
+
+
