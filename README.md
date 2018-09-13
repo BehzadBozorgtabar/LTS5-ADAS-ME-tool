@@ -17,6 +17,7 @@ README to know how to use well this Emotion Recognition Annotation Tool
 		- tkinter
 		- cv2
 		- csv
+		- struct
 
 3. Start the application:
 	

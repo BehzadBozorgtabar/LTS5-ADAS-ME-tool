@@ -1,6 +1,5 @@
 from tkinter import *
 from interface.data import *
-import numpy as np
 
 import matplotlib
 import matplotlib.ticker as tick
