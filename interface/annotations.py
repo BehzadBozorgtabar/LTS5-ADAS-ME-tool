@@ -116,6 +116,7 @@ class AnnotatorFrame(LabelFrame):
 			self._emotions[keys].set(data.get(keys, 0))
 
 		self._emotions['Arousal'].set(data.get('Arousal',-1))
+		self.updateScalesState()
 
 	#Heper function for update function
 	def updateScalesState(self, newValue = 0):
