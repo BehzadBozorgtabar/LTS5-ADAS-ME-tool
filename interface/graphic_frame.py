@@ -10,8 +10,17 @@ from matplotlib.figure import Figure
 
 class GraphFrame(LabelFrame):
 	"""
-	It represents the graph which will show us the annotations
-	done from the first frame, depends on time
+	It represents the graph which will show us the previous valence and arousal
+	annotations done with respect of the last frame annotated
+
+	Attributes: 
+		- figure: the matplotlib figure which contains the graph
+		- ax: the graph
+		- memory: a tuple which contains informations about the last save (data, first annotated, last annotated, current frame)
+		- canvas: the tkinter frame which encapsulates the graph
+
+		- listChoice: list of number of segment the user could choose to analyse the graph
+		- nbrSeg: variable linked to the choice of the user
 	"""
 
 	def __init__(self, parent, **kwargs):

@@ -16,7 +16,6 @@ SEGMENT_SIZE = 20
 #constant for graph
 xLabel = "Frame Number"
 yLabel = "Value"
-MAX_ZOOM = 8
 MARGIN = 0.2
 Y_UPPER_BOUND = 1
 Y_LOWER_BOUND = -1
@@ -29,3 +28,4 @@ mapStateColor = {'normal' : activeColor, 'disabled' : inactiveColor}
 Valence = 0
 Arousal = 1
 CanvasID = 2
+valAr = ['Valence', 'Arousal']

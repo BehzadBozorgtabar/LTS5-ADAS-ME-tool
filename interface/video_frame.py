@@ -221,7 +221,6 @@ class VideoFrame(LabelFrame):
 
 	# loop method of the app, to display a video and have an interactive app
 	def update(self):
-		#Let draw the box around the face
 
 		if not self._play:
 			self._video.set(FRAME_INDEX, self._frame.get())

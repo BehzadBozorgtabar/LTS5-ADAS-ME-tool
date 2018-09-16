@@ -5,6 +5,20 @@ class AnnotatorFrame(LabelFrame):
 	"""
 	Represent the annotation frame, we will
 	annotate the data into this window
+
+	Attributes:
+		- nbrRows: number of rows in this frame
+		- nbrCols: number of clos in this frame
+
+		- emotions: a dictionnary which maps emotions to a variables linked to the scales
+		- valarRelations: a dictionnary which maps a valence/arousal configuration to a list of emotions
+		- nbrScalePerLine: The maximun number of scales that can be displayed on a line
+		
+		- quarters: a dictionnary which maps a valence/arousal configuration to a canvas ID
+		- canvas: the canvas which contains the graph
+		- canLabels: a dictionnary which maps an emotion to a text ID
+
+		-scales: a dictionnary which maps emotions to a scale
 	"""
 
 	def __init__(self, parent, **kwargs):
@@ -24,7 +38,15 @@ class AnnotatorFrame(LabelFrame):
 		#Data
 		self._emotions = {"Joy" : IntVar(), "Sadness" : IntVar(), "Anger" : IntVar(), "Disgust" : IntVar(), "Fear" : IntVar(), "Surprise" : IntVar(), "Neutral" : IntVar(), "Valence" : IntVar(), "Arousal" : IntVar()}
 
-		self._valarRelations = { (-1,-1): ['Sadness'], (-1,0): ['Fear', 'Disgust', 'Sadness'], (-1,1): ['Fear', 'Anger', 'Surprise', 'Disgust'], (0,-1): ['Neutral'], (0,0): [], (0,1): ['Surprise'], (1,-1): [], (1,0): ['Joy'], (1,1): ['Joy', 'Surprise']}
+		self._valarRelations = { (-1,-1): ['Sadness'],\
+					 (-1,0): ['Fear', 'Disgust', 'Sadness'],\
+					 (-1,1): ['Fear', 'Anger', 'Surprise', 'Disgust'],\
+					 (0,-1): ['Neutral'],\
+					 (0,0): [],\
+					 (0,1): ['Surprise'],\
+					 (1,-1): [],\
+					 (1,0): ['Joy'],\
+					 (1,1): ['Joy', 'Surprise']}
 
 
 		self._nbrScalePerLine = 4
@@ -40,36 +62,53 @@ class AnnotatorFrame(LabelFrame):
 		
 		canWidth, canHeight = (float(self._canvas['width']), float(self._canvas['height']))
 
-		self._canLabels = {'Joy' : self._canvas.create_text(self.__canH(canWidth, 8.25), self.__canH(canHeight, 3.0), text = 'Joy'), 'Anger' : self._canvas.create_text(self.__canH(canWidth, 1.5), self.__canH(canHeight, 1.5), text = 'Anger'), 'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), text = 'Sadness'), 'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 0.5), text = 'Surpise'), 'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45), self.__canH(canHeight, 4.0), text = 'Fear'), 'Neutral' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 8.5), text = 'Neutral'), 'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 2.5), text = 'Disgust')}
+		self._canLabels = 	{'Joy' : self._canvas.create_text(self.__canH(canWidth, 8.25), self.__canH(canHeight, 3.0), text = 'Joy'),\
+					'Anger' : self._canvas.create_text(self.__canH(canWidth, 1.5), self.__canH(canHeight, 1.5), text = 'Anger'),\
+				 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), text = 'Sadness'),\
+				 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 0.5), text = 'Surpise'),\
+					'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45), self.__canH(canHeight, 4.0), text = 'Fear'),\
+					'Neutral' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 8.5), text = 'Neutral'),\
+					'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 2.5), text = 'Disgust')}
 
 		#Upper Left
-		self._quarters[(-1,1)] = self._canvas.create_arc(self.__canH(canWidth, 1.3), self.__canH(canHeight, 1.0), self.__canH(canWidth, 7.0), self.__canH(canHeight, 7.0), start = 90, extent = 90)
+		self._quarters[(-1,1)] = self._canvas.create_arc(self.__canH(canWidth, 1.3), self.__canH(canHeight, 1.0),\
+								self.__canH(canWidth, 7.0), self.__canH(canHeight, 7.0), start = 90, extent = 90)
 
 		#Left
-		self._quarters[(-1,0)] = self._canvas.create_rectangle(self.__canH(canWidth, 1.3), self.__canH(canHeight, 4.0), self.__canH(canWidth, 4.0), self.__canH(canHeight, 5.0))
+		self._quarters[(-1,0)] = self._canvas.create_rectangle(self.__canH(canWidth, 1.3), self.__canH(canHeight, 4.0),\
+									self.__canH(canWidth, 4.0), self.__canH(canHeight, 5.0))
 
 		#Loer Left
-		self._quarters[(-1,-1)] = self._canvas.create_arc(self.__canH(canWidth, 1.3), self.__canH(canHeight, 2.0), self.__canH(canWidth, 7.0), self.__canH(canHeight, 8.0), start = 180, extent = 90)
+		self._quarters[(-1,-1)] = self._canvas.create_arc(self.__canH(canWidth, 1.3), self.__canH(canHeight, 2.0),\
+								self.__canH(canWidth, 7.0), self.__canH(canHeight, 8.0), start = 180, extent = 90)
+
+
 
 		#Upper
-		self._quarters[(0,1)] = self._canvas.create_rectangle(self.__canH(canWidth, 4.0), self.__canH(canHeight, 1.0), self.__canH(canWidth, 5.0), self.__canH(canHeight, 4.0))
+		self._quarters[(0,1)] = self._canvas.create_rectangle(self.__canH(canWidth, 4.0), self.__canH(canHeight, 1.0),\
+									self.__canH(canWidth, 5.0), self.__canH(canHeight, 4.0))
 
 		#Center
-		self._quarters[(0,0)] = self._canvas.create_rectangle(self.__canH(canWidth, 4.0), self.__canH(canHeight, 4.0), self.__canH(canWidth, 5.0), self.__canH(canHeight, 5.0))
+		self._quarters[(0,0)] = self._canvas.create_rectangle(self.__canH(canWidth, 4.0), self.__canH(canHeight, 4.0),\
+									self.__canH(canWidth, 5.0), self.__canH(canHeight, 5.0))
 
 		#Lower
-		self._quarters[(0,-1)] = self._canvas.create_rectangle(self.__canH(canWidth, 4.0), self.__canH(canHeight, 5.0), self.__canH(canWidth, 5.0), self.__canH(canHeight, 8.0))
+		self._quarters[(0,-1)] = self._canvas.create_rectangle(self.__canH(canWidth, 4.0), self.__canH(canHeight, 5.0),\
+									self.__canH(canWidth, 5.0), self.__canH(canHeight, 8.0))
 
 
 
 		#Upper Right
-		self._quarters[(1,1)] = self._canvas.create_arc(self.__canH(canWidth, 2.15), self.__canH(canHeight, 1.0), self.__canH(canWidth, 7.85), self.__canH(canHeight, 7.0), start = 0, extent = 90)
+		self._quarters[(1,1)] = self._canvas.create_arc(self.__canH(canWidth, 2.15), self.__canH(canHeight, 1.0),\
+								self.__canH(canWidth, 7.85), self.__canH(canHeight, 7.0), start = 0, extent = 90)
 
 		#Right
-		self._quarters[(1,0)] = self._canvas.create_rectangle(self.__canH(canWidth, 5.0), self.__canH(canHeight, 4.0), self.__canH(canWidth, 7.85), self.__canH(canHeight, 5.0))
+		self._quarters[(1,0)] = self._canvas.create_rectangle(self.__canH(canWidth, 5.0), self.__canH(canHeight, 4.0),\
+									self.__canH(canWidth, 7.85), self.__canH(canHeight, 5.0))
 
 		#Loer Right
-		self._quarters[(1,-1)] = self._canvas.create_arc(self.__canH(canWidth, 2.15), self.__canH(canHeight, 2.0), self.__canH(canWidth, 7.85), self.__canH(canHeight, 8.0), start = 270, extent = 90)
+		self._quarters[(1,-1)] = self._canvas.create_arc(self.__canH(canWidth, 2.15), self.__canH(canHeight, 2.0),\
+								self.__canH(canWidth, 7.85), self.__canH(canHeight, 8.0), start = 270, extent = 90)
 
 
 		"""
@@ -86,11 +125,11 @@ class AnnotatorFrame(LabelFrame):
 			l = Label(self, bg = self['bg'], fg = 'black', text = keys)
 
 			if keys == 'Valence':
-				s.config(bg = activeColor, orient = 'horizontal', from_ = -1, to = 1, command = self.updateScalesState)
+				s.config(bg = activeColor, orient = 'horizontal', from_ = -1, to = 1, command = self.__updateScalesState)
 				s.grid(row = self._nbrRows - 1, column = self._nbrScalePerLine, columnspan = self._nbrCols - self._nbrScalePerLine, sticky = 'WE')
 				l.grid(row = self._nbrRows - 1, column = self._nbrScalePerLine - 1)
 			elif keys == 'Arousal':
-				s.config(bg = activeColor, from_ = 1, to = -1, command = self.updateScalesState)
+				s.config(bg = activeColor, from_ = 1, to = -1, command = self.__updateScalesState)
 				s.grid(column = self._nbrCols, row = 1, rowspan = self._nbrRows - 2, sticky = 'NS')
 				l.grid(column = self._nbrCols, row = 0)
 			else:
@@ -112,14 +151,19 @@ class AnnotatorFrame(LabelFrame):
 
 	#Updates the scales ' state
 	def updateScales(self, data):
-		for keys in self._emotions.keys():
-			self._emotions[keys].set(data.get(keys, 0))
+		for keys in valAr:
+			default = -1 if keys == 'Arousal' else 0
+			self._emotions[keys].set(data.get(keys, default))
 
-		self._emotions['Arousal'].set(data.get('Arousal',-1))
-		self.updateScalesState()
+		self.__updateScalesState()
+
+		for keys in self._emotions.keys():
+			if keys not in valAr:
+				self._emotions[keys].set(data.get(keys, 0))
+
 
 	#Heper function for update function
-	def updateScalesState(self, newValue = 0):
+	def __updateScalesState(self, newValue = 0):
 		v, a = (self._emotions['Valence'].get(), self._emotions['Arousal'].get())
 
 		for index, ID in self._quarters.items():
@@ -161,4 +205,4 @@ class AnnotatorFrame(LabelFrame):
 		for keys in self._emotions.keys():
 			self._emotions[keys].set(0)
 		self._emotions['Arousal'].set(-1)
-		self.updateScalesState()
+		self.__updateScalesState()
