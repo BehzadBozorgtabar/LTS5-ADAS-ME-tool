@@ -9,8 +9,8 @@ README to know how to use well this Emotion Recognition Annotation Tool
 
 	Requirements:
 			- the video files have to be .avi ones
-			- the data associated files have to be .csv files or .smb ones
-			- the name of a video file and its associated data file has to be the same
+			- the data files have to be .csv files or .smb ones
+			- for a csv file, you must import the associated video file beside
 
 2. Libraries requirements:
 
@@ -20,6 +20,7 @@ README to know how to use well this Emotion Recognition Annotation Tool
 		- cv2
 		- csv
 		- struct
+		- numpy
 
 3. Start the application:
 	
@@ -35,6 +36,7 @@ README to know how to use well this Emotion Recognition Annotation Tool
 	
 	First, annotate the valence and arousal with help of the graph that shows you the previous segments annotated.
 	Then, you can annotate the corresponding emotions to have more precision
+	Don't forget to annotate the severity
 	The annotation done, save it and go to the next frame/segment
 
 	You always have to save an entire segment before go to the next one

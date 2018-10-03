@@ -67,6 +67,10 @@ def draw_annotation_interface(file_to_annotate):
 
 
 def draw_start_interface(listToAnnotate):
+
+	start_nbr_rows = 5
+	start_nbr_cols = 3
+	start_minsize = 60
 	
 	start = Tk()
 	ws = start.winfo_screenwidth()
@@ -91,6 +95,7 @@ def draw_start_interface(listToAnnotate):
 	exit = Button(start, text = "Exit", fg = 'red', command = sys.exit)
 	exit.grid(row = 4, column = 2, padx = pad, pady = pad, sticky = stick)
 	exit.grid_propagate(False)
+
 
 	#validation
 	def validate_command(to_annotate):
@@ -122,12 +127,9 @@ def draw_start_interface(listToAnnotate):
 
 	start.mainloop()
 	
+import ReadSMBBinaryFile.extract_roi_data as smb
 
 if __name__ == '__main__':
-
-	start_nbr_rows = 5
-	start_nbr_cols = 3
-	start_minsize = 60
 
 	#load data
 	toAnnotateList = []
@@ -143,12 +145,9 @@ if __name__ == '__main__':
 	"""
 
 	for filename in os.listdir(toAnnotatePath):
-		if filename.endswith(".smb") or filename.endswith(".csv"):
+		if filename.endswith(".smb") or (filename.endswith(".csv") and os.path.exists(toAnnotatePath + '/' + filename[:-4] + '.avi')):
 			toAnnotateList.append(filename)
 
-	
-
-	#draw_annotation_interface('20180814_101543_0.csv')
 	draw_start_interface(toAnnotateList)
 	
 		

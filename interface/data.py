@@ -12,6 +12,8 @@ first_index = first_frame - 1
 FRAME_INDEX = 1
 NBR_FRAMES = 7
 SEGMENT_SIZE = 20
+window_width = 640
+window_height = 480
 
 #constant for graph
 xLabel = "Frame Number"
@@ -29,3 +31,4 @@ Valence = 0
 Arousal = 1
 CanvasID = 2
 valAr = ['Valence', 'Arousal']
+valArSev = ['Valence', 'Arousal', 'Severity']

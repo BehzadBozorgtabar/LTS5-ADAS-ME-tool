@@ -36,7 +36,7 @@ class AnnotatorFrame(LabelFrame):
 			self.columnconfigure(x, weight=1)
 		
 		#Data
-		self._emotions = {"Joy" : IntVar(), "Sadness" : IntVar(), "Anger" : IntVar(), "Disgust" : IntVar(), "Fear" : IntVar(), "Surprise" : IntVar(), "Neutral" : IntVar(), "Valence" : IntVar(), "Arousal" : IntVar()}
+		self._emotions = {"Joy" : IntVar(), "Sadness" : IntVar(), "Anger" : IntVar(), "Disgust" : IntVar(), "Fear" : IntVar(), "Surprise" : IntVar(), "Neutral" : IntVar(), "Valence" : IntVar(), "Arousal" : IntVar(), "Severity" : IntVar()}
 
 		self._valarRelations = { (-1,-1): ['Sadness'],\
 					 (-1,0): ['Fear', 'Disgust', 'Sadness'],\
@@ -127,11 +127,15 @@ class AnnotatorFrame(LabelFrame):
 			if keys == 'Valence':
 				s.config(bg = activeColor, orient = 'horizontal', from_ = -1, to = 1, command = self.__updateScalesState)
 				s.grid(row = self._nbrRows - 1, column = self._nbrScalePerLine, columnspan = self._nbrCols - self._nbrScalePerLine, sticky = 'WE')
-				l.grid(row = self._nbrRows - 1, column = self._nbrScalePerLine - 1)
+				l.grid(row = self._nbrRows - 1, column = self._nbrScalePerLine)
 			elif keys == 'Arousal':
 				s.config(bg = activeColor, from_ = 1, to = -1, command = self.__updateScalesState)
 				s.grid(column = self._nbrCols, row = 1, rowspan = self._nbrRows - 2, sticky = 'NS')
 				l.grid(column = self._nbrCols, row = 0)
+			elif keys == 'Severity':
+				s.config(bg = activeColor, from_ = 4, to = 1)
+				s.grid(column = self._nbrScalePerLine - 1, row = 3, rowspan = 2, sticky = 'NS')
+				l.grid(column = self._nbrScalePerLine - 1, row = 5, sticky = 'NS')
 			else:
 				s.grid(row = 0 if islowlim else 3, rowspan = 2, column = modlim, sticky = 'NS')
 				l.grid(row = 2 if islowlim else 5, column = modlim)
@@ -140,8 +144,7 @@ class AnnotatorFrame(LabelFrame):
 			self._scales[keys] = s
 
 		reset = Button(self, text = 'reset', command = self.reset)
-		reset.grid(row = 3, column = self._nbrScalePerLine - 1, sticky = 'EW', padx = pad, pady = pad)
-
+		reset.grid(row =0, column = self._nbrScalePerLine, sticky = 'EW', padx = pad, pady = pad)
 		self.reset()
 
 	#helper for creation of arcs to prevent duplication of code.
@@ -158,8 +161,10 @@ class AnnotatorFrame(LabelFrame):
 		self.__updateScalesState()
 
 		for keys in self._emotions.keys():
-			if keys not in valAr:
+			if keys not in valArSev:
 				self._emotions[keys].set(data.get(keys, 0))
+
+		self._emotions['Severity'].set(data.get('Severity', 1))
 
 
 	#Heper function for update function
@@ -174,7 +179,7 @@ class AnnotatorFrame(LabelFrame):
 
 		
 		for emotion in self._emotions.keys():
-			if emotion not in ['Valence', 'Arousal']:
+			if emotion not in valArSev:
 				toSetNormal = self._valarRelations[(v,a)]
 
 				if emotion in toSetNormal:
@@ -205,4 +210,5 @@ class AnnotatorFrame(LabelFrame):
 		for keys in self._emotions.keys():
 			self._emotions[keys].set(0)
 		self._emotions['Arousal'].set(-1)
+		self._emotions['Severity'].set(1)
 		self.__updateScalesState()

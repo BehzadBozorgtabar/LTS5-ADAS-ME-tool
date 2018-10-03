@@ -1,6 +1,6 @@
 from tkinter import *
 from interface.data import *
-import ReadSMBBinaryFile.extract_roi_data as smb
+from ReadSMBBinaryFile.extract_roi_data import SMB
 import PIL.Image, PIL.ImageTk
 import cv2
 import csv
@@ -36,7 +36,7 @@ class VideoFrame(LabelFrame):
 
 		self._parent = parent
 		self._file_to_annotate = file_to_annotate
-		dataPath = toAnnotatePath + '/' + self._file_to_annotate
+		self._dataPath = toAnnotatePath + '/' + self._file_to_annotate
 
 		# configuration of the grid task manager
 		self._nbr_rows = 5
@@ -49,16 +49,26 @@ class VideoFrame(LabelFrame):
 			self.columnconfigure(x, weight=1)
 
 		#stores the csv file data into an array
-		self._data = smb.readSMB(dataPath) if file_to_annotate.endswith('.smb') else self.readCSV(dataPath)
+		self._smb = file_to_annotate.endswith('.smb')
+		self._data = 0
 	
 		#annotator/Graph
 		self._annotator = annotator
 		self._graph = graph
 
 		#opens the video file
-		self._video = cv2.VideoCapture(dataPath[:-4] + ".avi")
-		self._vidWidth = self._video.get(cv2.CAP_PROP_FRAME_WIDTH)
-		self._vidHeight = self._video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+		self._video = 0
+		self._vidWidth = 0
+		self._vidHeight = 0
+		
+		if self._smb:
+			self._video = SMB(self._dataPath)
+			self._vidWidth, self._vidHeight, self._data = self._video.ROIdata()
+		else:
+			self._data = self.readCSV()
+			self._video = cv2.VideoCapture(self._dataPath[:-4] + ".avi")
+			self._vidWidth = self._video.get(cv2.CAP_PROP_FRAME_WIDTH)
+			self._vidHeight = self._video.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 		#Setup
 		self._play = False
@@ -73,7 +83,7 @@ class VideoFrame(LabelFrame):
 		self._lastAnnotations = [first_frame - 1]
 
 		#Create a canvas that can fit the above video source size
-		self._canvas = Canvas(self, width = self._vidWidth, height = self._vidHeight)
+		self._canvas = Canvas(self, width = window_width, height = window_height)
 		self._canvas.grid(row = 0, column = 0, columnspan = 6)
 		self._canvas.grid_propagate(0)
 
@@ -108,9 +118,9 @@ class VideoFrame(LabelFrame):
 		self.update()
 
 	#Read a CSV file
-	def readCSV(self, dataPath):
+	def readCSV(self):
 		data = []
-		with open(dataPath, 'r') as csvFile:
+		with open(self._dataPath, 'r') as csvFile:
 			spamReader = csv.DictReader(csvFile, delimiter = '\t')
 
 			for row in spamReader:
@@ -233,15 +243,19 @@ class VideoFrame(LabelFrame):
 		
 		self.handle_widgets_states()
 
-		ret, frame = self.get_frame()
+
+		ret, frame = self.get_frame() if not self._smb else self._video.read()
+
 		if ret:
-			photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame))
+			photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame).resize((window_width, window_height), PIL.Image.ANTIALIAS))
 			self._canvas.create_image(0, 0, image = photo, anchor = NW)
 			self._canvas.photo = photo
 
 
 		currData = self._data[self._frame.get() - 1]
-		panx, pany, width, height = (float(currData['panX']), float(currData['panY']), float(currData['width']), float(currData['height']))
+		scale_w = window_width / self._vidWidth
+		scale_h = window_height / self._vidHeight
+		panx, pany, width, height = float(currData['panX']) * scale_w, float(currData['panY']) * scale_h, float(currData['width']) * scale_w, float(currData['height']) * scale_h
 		canvas_id = self._canvas.create_line(panx, pany, panx + width, pany, panx + width, pany + height, panx, pany + height, panx, pany, fill = 'red')
 
 
@@ -251,7 +265,7 @@ class VideoFrame(LabelFrame):
 
 	# Release the video source when the object is destroyed
 	def __del__(self):
-		if self._video.isOpened():
+		if not self._smb and self._video.isOpened():
 			self._video.release()
 
 
