@@ -31,6 +31,9 @@ README to know how to use well this Emotion Recognition Annotation Tool
 	
 	On linux, type in the terminal in lts5-ada-me folder: python3 main.py
 	A little window with a list of file will be displayed
+	
+	While starting, the termial will ask you in you want to access the data on a hard drive disk.
+	If you answer 'Yes', then you have to provide your home's repository name (usually your linux's username), your hard drive disk name and a path in your hard drive disk (optionnal)
 
 4. Choose a file:
 
