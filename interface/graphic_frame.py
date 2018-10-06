@@ -1,6 +1,8 @@
+#Imports from the project's modules
 from tkinter import *
 from interface.data import *
 
+#Hight level API imports
 import matplotlib
 import matplotlib.ticker as tick
 matplotlib.use("TkAgg")
@@ -8,20 +10,21 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+"""
+It represents the graph which will show us the previous valence and arousal
+annotations done with respect of the last frame annotated
+
+Attributes: 
+	- figure: the matplotlib figure which contains the graph
+	- ax: the graph
+	- memory: a tuple which contains informations about the last save (data, first annotated, last annotated, current frame)
+	- canvas: the tkinter frame which encapsulates the graph
+
+	- listChoice: list of number of segment the user could choose to analyse the graph
+	- nbrSeg: variable linked to the choice of the user
+"""
 class GraphFrame(LabelFrame):
-	"""
-	It represents the graph which will show us the previous valence and arousal
-	annotations done with respect of the last frame annotated
-
-	Attributes: 
-		- figure: the matplotlib figure which contains the graph
-		- ax: the graph
-		- memory: a tuple which contains informations about the last save (data, first annotated, last annotated, current frame)
-		- canvas: the tkinter frame which encapsulates the graph
-
-		- listChoice: list of number of segment the user could choose to analyse the graph
-		- nbrSeg: variable linked to the choice of the user
-	"""
+	
 
 	def __init__(self, parent, **kwargs):
 		LabelFrame.__init__(self, parent, **kwargs)
@@ -31,7 +34,7 @@ class GraphFrame(LabelFrame):
 		self._ax = self._figure.add_subplot(111)
 		
 		self._memory = ([], first_index, first_index, first_index)
-		self.setup(first_frame, first_frame + SEGMENT_SIZE, Y_LOWER_BOUND, Y_UPPER_BOUND, 1.0)
+		self.__setup(first_frame, first_frame + SEGMENT_SIZE, Y_LOWER_BOUND, Y_UPPER_BOUND, 1.0)
 
 		self._canvas = FigureCanvasTkAgg(self._figure, self)
 		self._canvas.get_tk_widget().pack(side = TOP, fill = BOTH, expand = True)
@@ -56,8 +59,16 @@ class GraphFrame(LabelFrame):
 			rb.place(relx = 0.025, rely = 0.3 + 0.1*x)
 		 
 
-	#It setups the graph
-	def setup(self, xLower, xUpper, yLower, yUpper, tickInterval):
+	"""
+	It setups the graph
+	Arguments:
+		- xLower: the min x
+		- xUpper: the max x
+		- yLower: the min y
+		- yUpper: the max y
+		- tickInterval: the interval between each major tick
+	"""
+	def __setup(self, xLower, xUpper, yLower, yUpper, tickInterval):
 		self._ax.set_xlabel(xLabel)
 		self._ax.set_xbound(xLower,xUpper)
 		self._ax.xaxis.set_minor_locator(tick.MultipleLocator(DEFAULT_TICK))
@@ -71,8 +82,13 @@ class GraphFrame(LabelFrame):
 		self._ax.grid(which = 'major')
 
 
-	#Plots a graph when a save is done
 	"""
+	Plots the graph after an annotation saved
+	Arguments:
+		- data: all annotations done before
+		- firstAnnotated: the frame annotated
+		- lastAnnotated: last frame annotated
+		- currAnnotation: the current frame annotated
 	Be careful:
 		- firstAnnotated and lastAnnotated are the programming indexes of frames
 		- right_bound and left_bound are the real indexes of frames
@@ -101,7 +117,7 @@ class GraphFrame(LabelFrame):
 		if left_bound == first_frame:
 			left_bound -= 1
 
-		self.setup(left_bound, right_bound, Y_LOWER_BOUND - MARGIN, Y_UPPER_BOUND + MARGIN, self._nbrSeg.get())
+		self.__setup(left_bound, right_bound, Y_LOWER_BOUND - MARGIN, Y_UPPER_BOUND + MARGIN, self._nbrSeg.get())
 
 		self._canvas.draw()
 		

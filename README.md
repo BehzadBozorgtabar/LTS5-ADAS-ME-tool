@@ -5,7 +5,13 @@ README to know how to use well this Emotion Recognition Annotation Tool
 
 1. Load data:
 	
-	Put your data files in the data/to_annotate folder.
+	For now, you can:
+
+	a)
+		Put your data files in the data/files folder.
+
+	b)
+		Put your data in a hard drive disk
 
 	Requirements:
 			- the video files have to be .avi ones
@@ -19,7 +25,6 @@ README to know how to use well this Emotion Recognition Annotation Tool
 		- tkinter
 		- cv2
 		- csv
-		- struct
 		- numpy
 
 3. Start the application:

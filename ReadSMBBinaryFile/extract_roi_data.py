@@ -2,17 +2,37 @@ import struct
 import numpy as np
 from interface.data import *
 
+import urllib
+from smb.SMBHandler import SMBHandler
+
 SMB_HEADER_SIZE = 20
 
+"""
+Class to read SMB files
+Attributes:
+	- index: current image index
+	- nbrFrames: number of images stored in the file
+	- dataPath: the location of the smb file
+	- ROIdata: the roi data
+	- width: the width of the images
+	- height: the height of the images
+"""
 class SMB:
 
+	"""
+	Constructor of the class
+	Initializes the ROi data, reading all headers
+	Argument:
+		- dataPath: the location of the smb file
+	"""
 	def __init__(self, dataPath):
 		self._index = 0
 		self._nbrFrames = 0
 		self._dataPath = dataPath
 		self._ROIdata = np.array([])
 		self._width, self._height = 0,0
-		file = open(self._dataPath, "rb")
+
+		file = open(self._dataPath, 'rb')
 
 		try:
 			'''
@@ -44,7 +64,6 @@ class SMB:
 				'''
 				Read ROI data
 				'''
-
 				camera_index = bytearray(file.read(4))
 				camera_index.reverse()
 				camera_index = int.from_bytes(camera_index, byteorder='big')
@@ -89,10 +108,14 @@ class SMB:
 			file.close()
 
 
+	"""
+	Reads the file at the current image index
+	Returns the image read and if it has been read correctly
+	"""
 	def read(self):
 		image = np.array([])
 		with open(self._dataPath, 'rb') as file:
-			file.seek((self._index-1) * (self._width*self._height + SMB_HEADER_SIZE) + SMB_HEADER_SIZE)
+			file.seek((self._index - 1) * (self._width*self._height + SMB_HEADER_SIZE) + SMB_HEADER_SIZE)
 			image = bytearray(file.read(self._width * self._height))
 			image = np.array(image)
 			image = np.reshape(image, (self._height, self._width))
@@ -100,16 +123,28 @@ class SMB:
 			return (True, image)
 		return (False, image)
 
+	"""
+	Returns the nbr of frames or the current index with respect to the index given as argument following the cv2 rules
+	"""
 	def get(self, index):
 		if index == FRAME_INDEX:
 			return self._index
 		elif index == NBR_FRAMES:
 			return self._nbrFrames
 
+	"""
+	Set the current index to newFrame
+	Arguments:
+		- index: index with respect to the cv2 rules
+		- newFrame: the new index
+	"""
 	def set(self, index, newFrame):
 		if index == FRAME_INDEX:
 			self._index = newFrame
 
+	"""
+	Returns the ROIdata with width and height of the images
+	"""
 	def ROIdata(self):
 		return self._width, self._height, self._ROIdata
 		
