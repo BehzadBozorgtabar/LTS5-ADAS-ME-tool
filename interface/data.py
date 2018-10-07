@@ -6,7 +6,7 @@ NASIP = "128.178.121.99"
 
 
 #constants for video
-first_frame = 3051
+first_frame = 1
 first_index = first_frame - 1
 FRAME_INDEX = 1
 NBR_FRAMES = 7
