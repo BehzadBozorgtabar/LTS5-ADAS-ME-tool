@@ -3,7 +3,6 @@ from tkinter import *
 import PIL.Image, PIL.ImageTk
 import cv2
 import csv
-import numpy as np
 
 #Imports from the project's folders
 from interface.data import *
@@ -79,7 +78,7 @@ class VideoFrame(LabelFrame):
 
 		#stores the csv file data into an array
 		self._smb = self._dataPath.endswith('.smb')
-		self._data = np.array([])
+		self._data = []
 
 		#opens the video file
 		self._video = 0
@@ -149,12 +148,12 @@ class VideoFrame(LabelFrame):
 	Reads a csv file.
 	"""
 	def __readCSV(self):
-		data = np.array([])
+		data = []
 		with open(self._dataPath, 'r') as csvFile:
 			spamReader = csv.DictReader(csvFile, delimiter = '\t')
 
 			for row in spamReader:
-				data = np.append(data,row)
+				data.append(row)
 		return data
 
 	"""

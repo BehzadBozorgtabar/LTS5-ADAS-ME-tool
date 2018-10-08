@@ -29,7 +29,7 @@ class SMB:
 		self._index = 0
 		self._nbrFrames = 0
 		self._dataPath = dataPath
-		self._ROIdata = np.array([])
+		self._ROIdata = []
 		self._width, self._height = 0,0
 
 		file = open(self._dataPath, 'rb')
@@ -99,7 +99,7 @@ class SMB:
 				current_position = current_position + (image_width * image_height) + SMB_HEADER_SIZE
 
 
-				self._ROIdata = np.append(self._ROIdata, {'CameraIndex' : camera_index, 'FrameNumber' : frame_number, 'timeStamp' : time_stamp, 'panX' : roi_left, 'panY' : roi_top, 'width' : roi_width, 'height' : roi_height, 'cameraAngle' : camera_angle})
+				self._ROIdata.append({'CameraIndex' : camera_index, 'FrameNumber' : frame_number, 'timeStamp' : time_stamp, 'panX' : roi_left, 'panY' : roi_top, 'width' : roi_width, 'height' : roi_height, 'cameraAngle' : camera_angle})
 				'''
 				Jump to the next image
 				'''
