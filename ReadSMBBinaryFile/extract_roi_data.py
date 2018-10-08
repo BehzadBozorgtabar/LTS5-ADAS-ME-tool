@@ -118,10 +118,13 @@ class SMB:
 			file.seek((self._index - 1) * (self._width*self._height + SMB_HEADER_SIZE) + SMB_HEADER_SIZE)
 			image = bytearray(file.read(self._width * self._height))
 			image = np.array(image)
-			image = np.reshape(image, (self._height, self._width))
 			self._index += 1
-			return (True, image)
-		return (False, image)
+			if image.size == self._width * self._height:
+				image = np.reshape(image, (self._height, self._width))
+				return (True, image)
+			else:
+				return (False, np.array([])) 
+		return (False, np.array([]))
 
 	"""
 	Returns the nbr of frames or the current index with respect to the index given as argument following the cv2 rules
