@@ -197,7 +197,7 @@ class VideoFrame(LabelFrame):
 	"""
 	def __prevSegment(self):
 		self._end = False
-		self._nextSegment.config(text = 'Next segment (x20 frames)', fg = 'black', state = 'disabled', command = self.nextSegment)
+		self._nextSegment.config(text = 'Next segment (x20 frames)', fg = 'black', state = 'disabled', command = self.__nextSegment)
 		self._prevSegment['state'] = 'disabled'
 		self._resetSegment['state'] = 'disabled'
 		self._startFrame = max(self._startFrame - SEGMENT_SIZE, 1)
