@@ -3,6 +3,7 @@ stick = "nesw"
 pad = 5
 delay = 15
 NASIP = "128.178.121.99"
+defaultSavePath = "data/files/"
 
 
 #constants for video

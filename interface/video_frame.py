@@ -16,6 +16,7 @@ and permit us to handle the data
 Attributes:
 	- parent: the parent widget of the video frame
 	- dataPath: the path we need to fetch the data
+	- savePath: The path where we save the annotation
 	- annotator: the frame which annotates the data
 	- graph: the graph which shows us the annotations done
 
@@ -53,14 +54,16 @@ class VideoFrame(LabelFrame):
 	Arguments:
 		- parent: the parent widget
 		- dataPath: The path we need to fetch the data
+		- savePath: The path where we save the annotation
 		- annotator: the annotator frame binded to this frame
 		- graph: the graph frame binded to this frame
 	"""
-	def __init__(self, parent, dataPath, annotator, graph, **kwargs):
+	def __init__(self, parent, dataPath, savePath, annotator, graph, **kwargs):
 		LabelFrame.__init__(self, parent, **kwargs)
 
 		self._parent = parent
 		self._dataPath = dataPath
+		self._savePath = savePath
 
 		#annotator/Graph
 		self._annotator = annotator
@@ -87,7 +90,9 @@ class VideoFrame(LabelFrame):
 		
 		if self._smb:
 			self._video = SMB(self._dataPath)
-			self._vidWidth, self._vidHeight, self._data = self._video.ROIdata()
+			self._data = [None] * int(self._video.get(NBR_FRAMES))
+			self._vidWidth, self._vidHeight = self._video.imageParams()
+			self._video.readROI(self._data, first_frame - 1, True)
 		else:
 			self._data = self.__readCSV()
 			self._video = cv2.VideoCapture(self._dataPath[:-4] + ".avi")
@@ -141,6 +146,7 @@ class VideoFrame(LabelFrame):
 		self._resetSegment = Button(self, text = 'Reset Segment', state = 'disabled', command = self.__resetSegment)
 		self._resetSegment.grid(row = 4, column = 5, sticky = stick, padx = pad, pady = pad)
 
+		#self.__setData()
 		self.__update()
 
 	
@@ -155,6 +161,22 @@ class VideoFrame(LabelFrame):
 			for row in spamReader:
 				data.append(row)
 		return data
+
+	"""
+	Writes a csv file
+	Argument:
+		- The path where we want to save the file
+	"""
+	def __writeCSV(self, path):
+		path = path[:-4]
+		with open(path + '_annotated.csv', 'w') as dataFile:
+			fieldnames = self._data[first_frame - 1].keys()
+			
+			writer = csv.DictWriter(dataFile, fieldnames = fieldnames)
+			
+			writer.writeheader()
+			for row in self._data:
+				writer.writerow(row)
 
 	"""
 	Goes to the next frame
@@ -186,10 +208,13 @@ class VideoFrame(LabelFrame):
 		self._nextSegment['state'] = 'disabled'
 		self._resetSegment['state'] = 'disabled'
 		self._startFrame = min(self._startFrame + SEGMENT_SIZE, self._nbrFrames)
+
+		if self._smb and self._endFrame == self._lastAnnotations[-1]:
+			self._video.readROI(self._data, self._startFrame - 1, True)
+
 		self._endFrame = min(self._endFrame + SEGMENT_SIZE, self._nbrFrames)
 		self._scale['from_'] = self._startFrame
 		self._scale['to'] = self._endFrame
-
 	
 	"""
 	Goes to the previous segment
@@ -202,6 +227,7 @@ class VideoFrame(LabelFrame):
 		self._startFrame = max(self._startFrame - SEGMENT_SIZE, 1)
 		self._endFrame = min(self._startFrame + SEGMENT_SIZE - 1, self._nbrFrames)
 		self._scale.config(from_ = self._startFrame, to = self._endFrame)
+		self._video.readROI(self._data, self._startFrame - 1, False)
 
 
 	"""
@@ -267,18 +293,13 @@ class VideoFrame(LabelFrame):
 	Save all data and exit the application
 	"""
 	def __saveAll(self):
-		data = self._data
-		path = self._dataPath[:-4]
-		
-		with open(path + '_annotated.csv', 'w') as dataFile:
-			fieldnames = data[first_frame - 1].keys()
+		default = defaultSavePath + self._savePath.split('/')[-1]
+		if self._savePath == default:
+			self.__writeCSV(self._savePath)
+		else:
+			self.__writeCSV(default)
+			self.__writeCSV(self._savePath)
 			
-			writer = csv.DictWriter(dataFile, fieldnames = fieldnames)
-			
-			writer.writeheader()
-			for row in data:
-				writer.writerow(row)
-
 		self._parent.destroy()
 
 	"""
@@ -304,7 +325,6 @@ class VideoFrame(LabelFrame):
 			photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame).resize((window_width, window_height), PIL.Image.ANTIALIAS))
 			self._canvas.create_image(0, 0, image = photo, anchor = NW)
 			self._canvas.photo = photo
-
 
 		currData = self._data[self._frame.get() - 1]
 		scale_w = window_width / self._vidWidth
