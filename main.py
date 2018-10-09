@@ -247,7 +247,7 @@ if __name__ == '__main__':
 	elif hardDrive:
 		username = input("Username: ")
 		driveName = input("Hard drive disk: ")
-		toAnnotatePath = '/media/' + username + '/' + hardDrive + '/' + input("Initial path: ")
+		toAnnotatePath = '/media/' + username + '/' + driveName + '/' + input("Initial path: ")
 		savePath = toAnnotatePath
 	else:
 		toAnnotatePath = "data/files/"
