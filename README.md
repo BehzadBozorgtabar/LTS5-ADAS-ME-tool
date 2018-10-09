@@ -31,6 +31,7 @@ README to know how to use well this Emotion Recognition Annotation Tool.
 
 	You need to know that to access on the NAS server, the program will mount the server on /mnt/NAS folder in the repository:
 		1)	You need to install curlftpfs for linux (sudo apt install curlftpfs)
+		
 		2)	You need to create the /mnt/NAS directory (sudo mkdir /mnt/server)
 	
 
@@ -40,7 +41,9 @@ README to know how to use well this Emotion Recognition Annotation Tool.
 	
 	While starting, the termial will ask you how you want to access the data:
 		1)	With NAS server (You need to use EPFL wifi or connect to the EPFL VPN). Your access username and password will be asked. Also, to mount the server, the program has to run a terminal command with sudo. You have to type your linux password if you want to continue)
+		
 		2)	With a hard drive disk (You need to provide your linux username and your hard drive disk name. Also, you can provide a path to follow in your hard drive disk (Enter if you want to skip this step)
+		
 		3)	On your local repository in the data/files/folder
 
 	The best to do is to load data on a hard drive disk since the data is heavy. Run the program on the NAS server is very slow.
@@ -56,6 +59,7 @@ README to know how to use well this Emotion Recognition Annotation Tool.
 	First, annotate the valence and arousal with help of the graph that shows you the previous segments annotated.
 	Then, you can annotate the corresponding emotions to have more precision.
 	Don't forget to annotate the severity with the following asumption : {1: Neutral, 2: Positive, 3: Fustration, 4; Anxiety}.
+	
 	The annotation done, save it and go to the next frame/segment
 
 	You always have to save an entire segment before go to the next one.
