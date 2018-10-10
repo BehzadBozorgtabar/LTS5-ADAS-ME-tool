@@ -211,6 +211,8 @@ class VideoFrame(LabelFrame):
 
 		if self._smb and self._endFrame == self._lastAnnotations[-1]:
 			self._video.readROI(self._data, self._startFrame - 1, True)
+		else:
+			self._video.readROI(self._data, self._startFrame - 1, False)
 
 		self._endFrame = min(self._endFrame + SEGMENT_SIZE, self._nbrFrames)
 		self._scale['from_'] = self._startFrame
