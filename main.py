@@ -203,6 +203,7 @@ Returns the list of all files and directories at path
 Throws an error if the path is not valid
 """
 def listDirectories(path):
+	print(path)
 	list = []
 	try:
 		list = os.listdir(path)
@@ -248,6 +249,7 @@ if __name__ == '__main__':
 		username = input("Username: ")
 		driveName = input("Hard drive disk: ")
 		toAnnotatePath = '/media/' + username + '/' + driveName + '/' + input("Initial path: ")
+		depth_to_remove = len(toAnnotatePath.split('/')) - 1
 		savePath = toAnnotatePath
 	else:
 		toAnnotatePath = "data/files/"
