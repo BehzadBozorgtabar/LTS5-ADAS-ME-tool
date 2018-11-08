@@ -203,7 +203,6 @@ Returns the list of all files and directories at path
 Throws an error if the path is not valid
 """
 def listDirectories(path):
-	print(path)
 	list = []
 	try:
 		list = os.listdir(path)
