@@ -47,7 +47,7 @@ def draw_annotation_interface(file_to_annotate, network, savePath):
 	annotator_frame = AnnotatorFrame(interface, fg = 'black', text = "2. Annotation")
 	annotator_frame.grid(row = 0, rowspan = 6, column = 5, columnspan = 5, padx = pad, pady = pad, sticky = stick)
 	annotator_frame.grid_propagate(0)
-
+	
 	graph_frame = GraphFrame(interface, bg = 'white', text = "3. Graph")
 	graph_frame.grid(row = 6, rowspan = 4, column = 5, columnspan = 5, padx = pad, pady = pad, sticky = stick)
 	graph_frame.grid_propagate(0)
@@ -229,7 +229,7 @@ if __name__ == '__main__':
 	while ans not in [1,2,3]:
 		ask = "In which workspace do you want to work ?"
 		ask += "\n	1. On NAS server (Make sure you're connecting to EPFL VPN if you're not using EPFL WIFI. It may run very slow !)"
-		ask += "\n	2. On a hard drive disk (You'll to provide your repository username and hard drive disk name)"
+		ask += "\n	2. On a hard drive disk (You'll need to provide your repository username and hard drive disk name)"
 		ask += "\n	3. On local repository"
 		ask += "\n Answer (1\\2\\3) : "
 		ans = int(input(ask))

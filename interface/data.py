@@ -1,7 +1,6 @@
 # constant for all
 stick = "nesw"
 pad = 5
-delay = 15
 NASIP = "128.178.121.99"
 defaultSavePath = "data/files/"
 
@@ -11,7 +10,7 @@ first_frame = 1
 first_index = first_frame - 1
 FRAME_INDEX = 1
 NBR_FRAMES = 7
-SEGMENT_SIZE = 20
+MIN_SEGMENT_SIZE = 20
 window_width = 640
 window_height = 480
 
@@ -21,7 +20,6 @@ yLabel = "Value"
 MARGIN = 0.2
 Y_UPPER_BOUND = 1
 Y_LOWER_BOUND = -1
-DEFAULT_TICK = 1.0
 
 #Constants for annotation frame
 inactiveColor = 'grey'

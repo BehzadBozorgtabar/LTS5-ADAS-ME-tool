@@ -41,9 +41,9 @@ class AnnotatorFrame(LabelFrame):
 
 		self._valarRelations = { (-1,-1): ['Sadness'],\
 					 (-1,0): ['Fear', 'Disgust', 'Sadness'],\
-					 (-1,1): ['Fear', 'Anger', 'Surprise', 'Disgust'],\
+					 (-1,1): ['Fear', 'Anger', 'Disgust'],\
 					 (0,-1): ['Neutral'],\
-					 (0,0): [],\
+					 (0,0): ['Neutral'],\
 					 (0,1): ['Surprise'],\
 					 (1,-1): [],\
 					 (1,0): ['Joy'],\
@@ -58,14 +58,6 @@ class AnnotatorFrame(LabelFrame):
 		self._canvas.grid(row = 0, rowspan = nbrRows, column = nbrScalePerLine, columnspan = nbrCols - nbrScalePerLine + 1, sticky = 'W')
 		
 		canWidth, canHeight = (float(self._canvas['width']), float(self._canvas['height']))
-
-		self._canLabels = {'Joy' : self._canvas.create_text(self.__canH(canWidth, 8.25), self.__canH(canHeight, 3.0), text = 'Joy'),\
-				'Anger' : self._canvas.create_text(self.__canH(canWidth, 1.5), self.__canH(canHeight, 1.5), text = 'Anger'),\
-			 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), text = 'Sadness'),\
-			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 0.5), text = 'Surpise'),\
-				'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45), self.__canH(canHeight, 4.0), text = 'Fear'),\
-				'Neutral' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 8.5), text = 'Neutral'),\
-				'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 2.5), text = 'Disgust')}
 
 		#Upper Left
 		self._quarters[(-1,1)] = self._canvas.create_arc(self.__canH(canWidth, 1.3), self.__canH(canHeight, 1.0),\
@@ -107,6 +99,14 @@ class AnnotatorFrame(LabelFrame):
 		self._quarters[(1,-1)] = self._canvas.create_arc(self.__canH(canWidth, 2.15), self.__canH(canHeight, 2.0),\
 								self.__canH(canWidth, 7.85), self.__canH(canHeight, 8.0), start = 270, extent = 90)
 
+		self._canLabels = {'Joy' : self._canvas.create_text(self.__canH(canWidth, 8.25), self.__canH(canHeight, 3.0), text = 'Joy'),\
+				'Anger' : self._canvas.create_text(self.__canH(canWidth, 1.5), self.__canH(canHeight, 1.5), text = 'Anger'),\
+			 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), text = 'Sadness'),\
+			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 0.5), text = 'Surpise'),\
+				'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45), self.__canH(canHeight, 4.0), text = 'Fear'),\
+				'Neutral' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 4.8), font = ('Purisa', 7), text = 'Neutral'),\
+				'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 2.5), text = 'Disgust')}
+
 
 		#Construct the scales to annotate data
 		self._scales = {}
@@ -139,7 +139,6 @@ class AnnotatorFrame(LabelFrame):
 			self._scales[keys] = s
 
 		reset = Button(self, text = 'reset', command = self.reset)
-		reset.grid(row =0, column = nbrScalePerLine, sticky = 'EW', padx = pad, pady = pad)
 		self.reset()
 
 	"""
@@ -160,8 +159,7 @@ class AnnotatorFrame(LabelFrame):
 	"""
 	def updateScales(self, data):
 		for keys in valAr:
-			default = -1 if keys == 'Arousal' else 0
-			self._emotions[keys].set(data.get(keys, default))
+			self._emotions[keys].set(data.get(keys, 0))
 
 		self.__updateScalesState()
 
@@ -193,6 +191,15 @@ class AnnotatorFrame(LabelFrame):
 					self.__changeState(emotion, 'normal')
 				else:
 					self.__changeState(emotion, 'disabled')
+			elif emotion == 'Severity':
+				if v == -1:
+					self._scales['Severity'].config(from_ = 4, to = 3)
+					self._emotions['Severity'].set(3)
+				elif v == 0:
+					self._scales['Severity'].config(from_ = 2, to = 1)
+					self._emotions['Severity'].set(1)
+				else:
+					self._scales['Severity'].config(from_ = 2, to = 2)
 			
 			
 
@@ -225,6 +232,6 @@ class AnnotatorFrame(LabelFrame):
 	def reset(self):
 		for keys in self._emotions.keys():
 			self._emotions[keys].set(0)
-		self._emotions['Arousal'].set(-1)
+		self._emotions['Arousal'].set(0)
 		self._emotions['Severity'].set(1)
 		self.__updateScalesState()

@@ -34,12 +34,16 @@ Attributes:
 	- startFrame: The lower bound of the segmnent displayed
 	- endDrame: the upper bound of the segment displayed
 	- lastAnnotations: A list of all the frame for which we've saved an annotation
+	- tickSegments: a list of the frames which seperate each video segment
+	- segmentIndex: the index of the video segment we're currently running 
 
 	- canvas: the support of the video data
 	- prevFrame: a button to go to the previous frame
 	- scale: a scale to choose which frame to display within the current segment
 	- nextFrame: a button to go to the next frame
-	- replay: a button to plays the video during a segment of 20 frames
+	- play: a button to play the video from the current frame
+	- replay: a button to play the video from the start frame
+	- stop: a button to stop the video
 	- info: a label to inform the user his current position in the video
 	- prevSegment: a button to go to the previous segment
 	- nextSegment: a button to go to the next segment
@@ -90,9 +94,8 @@ class VideoFrame(LabelFrame):
 		
 		if self._smb:
 			self._video = SMB(self._dataPath)
-			self._data = [None] * int(self._video.get(NBR_FRAMES))
+			self._data = self._video.ROIData()
 			self._vidWidth, self._vidHeight = self._video.imageParams()
-			self._video.readROI(self._data, first_frame - 1, True)
 		else:
 			self._data = self.__readCSV()
 			self._video = cv2.VideoCapture(self._dataPath[:-4] + ".avi")
@@ -104,13 +107,19 @@ class VideoFrame(LabelFrame):
 		self._play = False
 		self._end = False
 		self._frame = IntVar()
+		self._delayVar = IntVar()
 		self._lastFrame = first_frame
 		self._nbrFrames = self._video.get(NBR_FRAMES)
 		self._startFrame = first_frame
-		self._endFrame = min(self._nbrFrames, self._startFrame + SEGMENT_SIZE - 1)
+		self._endFrame = self._nbrFrames
 		self._lastAnnotations = [first_frame - 1]
+		self._tickSegments = [first_frame, self._nbrFrames]
+		self._segmentIndex = 0
 		
 		self._frame.set(self._startFrame)
+		self._delayVar.set(4)
+		self._delayList = [500, 250, 50, 5, 1]
+		self._delay = self._delayList[self._delayVar.get() - 1]
 		self._video.set(FRAME_INDEX, self._startFrame)
 
 		#Create a canvas that can fit the above video source size
@@ -122,23 +131,29 @@ class VideoFrame(LabelFrame):
 		self._prevFrame = Button(self, text = 'Previous frame', state = 'disabled', command = self.__prevFrame)
 		self._prevFrame.grid(row = 1, column = 0, sticky = stick, padx = pad, pady = pad)
 
-		self._scale = Scale(self, orient = 'horizontal', from_ = self._startFrame, to = self._endFrame, tickinterval = SEGMENT_SIZE - 1, variable = self._frame)
+		self._scale = Scale(self, orient = 'horizontal', from_ = self._startFrame, to = self._endFrame, tickinterval = self._nbrFrames - 1, variable = self._frame)
 		self._scale.grid(row = 1, column = 1, columnspan = 4, sticky = 'ew', padx = pad, pady = pad)
 
 		self._nextFrame = Button(self, text = 'Next frame', state = 'disabled', command = self.__nextFrame)
 		self._nextFrame.grid(row = 1, column = 5, sticky = stick, padx = pad, pady = pad)
 
-		self._replay = Button(self, text = 'Play/Replay', fg = 'green', state = 'normal', command = self.__replay)
-		self._replay.grid(row = 2, column = 0, columnspan = 3, sticky = stick, padx = pad, pady = pad)
+		self._playButt = Button(self, text = 'Play', fg = 'green', state = 'normal', command = self.__play)
+		self._playButt.grid(row = 2, column = 0, sticky = stick, padx = pad, pady = pad)
+
+		self._replay = Button(self, text = 'Replay', fg = 'green', state = 'normal', command = self.__replay)
+		self._replay.grid(row = 2, column = 1, sticky = stick, padx = pad, pady = pad)
+
+		self._delayScale = Scale(self, orient = 'horizontal', from_ = 1, to = 5, tickinterval = 1, variable = self._delayVar)
+		self._delayScale.grid(row = 2, column = 2, sticky = 'ew', padx = pad, pady = pad)
 
 		self._info = Label(self, text = "Frame %d/%d" % (self._frame.get(), self._nbrFrames))
 		self._info.grid(row = 2, column = 3, columnspan = 3, sticky = stick, padx = pad, pady = pad)
 
-		self._prevSegment = Button(self, text = 'Previous segment (x20 frames)', state = 'disabled', command = self.__prevSegment)
-		self._prevSegment.grid(row = 3, column = 0, columnspan = 3, sticky = stick, padx = pad, pady = pad)
+		self._prevSegment = Button(self, text = 'Previous segment', state = 'disabled', command = self.__prevSegment)
+		self._prevSegment.grid(row = 3, column = 0, columnspan = 2, sticky = stick, padx = pad, pady = pad)
 
-		self._nextSegment = Button(self, text = 'Next segment (x20 frames)', state = 'disabled', command = self.__nextSegment)
-		self._nextSegment.grid(row = 3, column = 3, columnspan = 3, sticky = stick, padx = pad, pady = pad)
+		self._nextSegment = Button(self, text = 'Next segment', state = 'disabled', command = self.__nextSegment)
+		self._nextSegment.grid(row = 3, column = 2, columnspan = 4, sticky = stick, padx = pad, pady = pad)
 
 		self._saveFrame = Button(self, state = 'disabled', command = self.__saveFrame)
 		self._saveFrame.grid(row = 4, column = 0, columnspan = 5, sticky = stick, padx = pad, pady = pad)
@@ -191,14 +206,30 @@ class VideoFrame(LabelFrame):
 	def __prevFrame(self):
 		self._frame.set(self._frame.get() - 1)
 		
+	"""
+	Plays the video from the current segment
+	"""
+	def __play(self):
+		self._play = True
+		self._playButt.config(text = 'Stop', fg = 'red',state = 'normal', command = self.__stop)
+		self._replay['state'] = 'disabled'
 
 	"""
-	Plays the video for the current segment
+	Replays the video for the current segment from the start
 	"""
 	def __replay(self):
-		self._video.set(FRAME_INDEX,self._startFrame)
+		self._frame.set(self._startFrame)
 		self._play = True
+		self._playButt.config(text = 'Stop', fg = 'red', state = 'normal', command = self.__stop)
 		self._replay['state'] = 'disabled'
+
+	"""
+	Stops the video
+	"""
+	def __stop(self):
+		self._play = False
+		self._playButt.config(text = 'Play', fg = 'green',state = 'normal', command = self.__play)
+		self._replay['state'] = 'normal'
 
 	
 	"""
@@ -207,29 +238,25 @@ class VideoFrame(LabelFrame):
 	def __nextSegment(self):
 		self._nextSegment['state'] = 'disabled'
 		self._resetSegment['state'] = 'disabled'
-		self._startFrame = min(self._startFrame + SEGMENT_SIZE, self._nbrFrames)
-
-		if self._smb and self._endFrame == self._lastAnnotations[-1]:
-			self._video.readROI(self._data, self._startFrame - 1, True)
-		else:
-			self._video.readROI(self._data, self._startFrame - 1, False)
-
-		self._endFrame = min(self._endFrame + SEGMENT_SIZE, self._nbrFrames)
-		self._scale['from_'] = self._startFrame
-		self._scale['to'] = self._endFrame
+		self._segmentIndex += 1
+		self._startFrame = self._tickSegments[self._segmentIndex] + 1
+		self._endFrame = self._tickSegments[self._segmentIndex + 1]
+		self._scale.config(from_ = self._startFrame, to = self._endFrame, tickinterval = self._endFrame - self._startFrame)
 	
 	"""
 	Goes to the previous segment
 	"""
 	def __prevSegment(self):
 		self._end = False
-		self._nextSegment.config(text = 'Next segment (x20 frames)', fg = 'black', state = 'disabled', command = self.__nextSegment)
+		self._nextSegment.config(text = 'Next segment', fg = 'black', state = 'disabled', command = self.__nextSegment)
 		self._prevSegment['state'] = 'disabled'
 		self._resetSegment['state'] = 'disabled'
-		self._startFrame = max(self._startFrame - SEGMENT_SIZE, 1)
-		self._endFrame = min(self._startFrame + SEGMENT_SIZE - 1, self._nbrFrames)
-		self._scale.config(from_ = self._startFrame, to = self._endFrame)
-		self._video.readROI(self._data, self._startFrame - 1, False)
+		self._segmentIndex -= 1
+		start = self._tickSegments[self._segmentIndex]
+		self._startFrame = start if start == 1 else start + 1
+		self._endFrame = self._tickSegments[self._segmentIndex + 1]
+		self._scale.config(from_ = self._startFrame, to = self._endFrame, tickinterval = self._endFrame - self._startFrame)
+		self._frame.set(self._startFrame)
 
 
 	"""
@@ -248,7 +275,6 @@ class VideoFrame(LabelFrame):
 	Resets all annotations done on the current segment to the initial state
 	"""
 	def __resetSegment(self):
-		self._frame.set(min(self._lastAnnotations[-1] + 1, self._endFrame))
 		self._annotator.reset()
 
 		first_index = self._lastAnnotations.index(self._startFrame - 1) + 1
@@ -279,17 +305,20 @@ class VideoFrame(LabelFrame):
 
 		
 		for x in range(prevAnnotated, frame):
-			for keys, value in self._annotator.getAnnotations().items(): 
-				self._data[x][keys] = value
-
-		self._graph.plotGraph(self._data, self._lastAnnotations[0], self._lastAnnotations[-1], frame)
+			self._data[x].update(self._annotator.getAnnotations())
 
 		if frame >= self._endFrame:
 			self.__saveSegment()
-			self._resetSegment['state'] = 'normal'
 		else:
-			self._nextSegment['state'] = 'disabled'
-			self.__nextFrame()
+			if frame - self._startFrame + 1 >= MIN_SEGMENT_SIZE:
+				self._segmentIndex += 1
+				self._tickSegments.append(frame)
+				self._tickSegments.sort()
+				self._startFrame = frame + 1
+				self._scale.config(from_ = self._startFrame, to = self._endFrame, tickinterval = self._endFrame - self._startFrame)
+			else:
+				self.__nextFrame()
+		self._graph.plotGraph(self._data, frame, self._tickSegments)
 
 	"""
 	Save all data and exit the application
@@ -308,11 +337,11 @@ class VideoFrame(LabelFrame):
 	loop method of the app, to display a video and have an interactive app
 	"""
 	def __update(self):
-
-		if not self._play:
-			self._video.set(FRAME_INDEX, self._frame.get())
-		# Get a frame from the video source
-		self._frame.set(self._video.get(FRAME_INDEX))
+	
+		self._video.set(FRAME_INDEX, self._frame.get())
+		self._delay = self._delayList[self._delayVar.get() - 1]
+		setup = self._frame.get() if not self._play else self._frame.get() + 1
+		self._frame.set(setup)
 
 		if not self._frame.get() == self._lastFrame:
 			self._annotator.updateScales(self._data[self._frame.get() -1])
@@ -320,8 +349,8 @@ class VideoFrame(LabelFrame):
 		
 		self.__handle_widgets_states()
 
-
-		ret, frame = self.__get_frame() if not self._smb else self._video.read()
+		ret, frame = self.__get_frame() if not self._smb else self._video.read(self._data, self._frame.get() - 1)
+		
 
 		if ret:
 			photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(frame).resize((window_width, window_height), PIL.Image.ANTIALIAS))
@@ -334,9 +363,9 @@ class VideoFrame(LabelFrame):
 		panx, pany, width, height = float(currData['panX']) * scale_w, float(currData['panY']) * scale_h, float(currData['width']) * scale_w, float(currData['height']) * scale_h
 		canvas_id = self._canvas.create_line(panx, pany, panx + width, pany, panx + width, pany + height, panx, pany + height, panx, pany, fill = 'red')
 
-
-		self._canvas.after(delay, self._canvas.delete, canvas_id)
-		self.after(delay, self.__update)
+		
+		self._canvas.after(self._delay, self._canvas.delete, canvas_id)
+		self.after(self._delay, self.__update)
 
 
 	"""
@@ -373,13 +402,16 @@ class VideoFrame(LabelFrame):
 		if self._frame.get() >= self._endFrame:
 			self._play = False
 			self._replay['state'] = 'normal'
+			self._playButt['state'] = 'disabled'
 			self._nextFrame['state'] = 'disabled'
+			self._resetSegment['state'] = 'normal'
 		else:			
+			self._resetSegment['state'] = 'disabled'
 			self._saveFrame['text'] += " and Next"
 
 			if not self._play:
 				self._nextFrame['state'] = 'normal'
-
+				self._playButt['state'] = 'normal'
 			else:
 				self._nextFrame['state'] = 'disabled'
 
@@ -397,6 +429,8 @@ class VideoFrame(LabelFrame):
 		#It's the the first frame of the segment
 		if self._frame.get() <= self._startFrame:
 			self._prevFrame['state'] = 'disabled'
+			self._replay['state'] = 'normal'
+			self._playButt['state'] = 'normal'
 
 		#It's the first segment
 		if self._startFrame <= 1:

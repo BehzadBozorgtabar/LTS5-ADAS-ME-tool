@@ -1,20 +1,19 @@
 import struct
 import numpy as np
 import os
+import sys
+import math
 
 from interface.data import *
 
 SMB_HEADER_SIZE = 20
-
 """
 Class to read SMB files
 Attributes:
-	- index: current image index
 	- nbrFrames: number of images stored in the file
 	- dataPath: the location of the smb file
 	- width: the width of the images
 	- height: the height of the images
-	- images: a bench of at most 20 images to load on the memory
 """
 class SMB:
 
@@ -25,11 +24,10 @@ class SMB:
 		- dataPath: the location of the smb file
 	"""
 	def __init__(self, dataPath):
-		self._index = 0
 		self._nbrFrames = 0
 		self._dataPath = dataPath
 		self._width, self._height = 0,0
-		self._images = []
+		self._ROIData = []
 
 		file = open(self._dataPath, 'rb')
 
@@ -48,47 +46,27 @@ class SMB:
 			image_height = int.from_bytes(image_height, byteorder='big')
 
 			self._width, self._height = image_width, image_height
-			
-		finally:
-			file.close()
-			self._nbrFrames = os.stat(dataPath).st_size / (SMB_HEADER_SIZE + self._width*self._height)
 
-
-	"""
-	Reads the file at the current image index
-	Returns the image to read and if it has been read correctly
-	"""
-	def read(self):
-		image = self._images[(self._index-1) % SEGMENT_SIZE]
-		self._index += 1
-		return(True, image)
-
-	
-	"""
-	Reads the file at the current image index, reads only the header
-	Sets data to the associated ROIData for a frame i
-	Arguments:
-		- data: the list of all ROIData for each frame to setup if we're annotating the start_index for the first frame
-		- start_index: the first frame index of the current segment
-		- loadROI: a boolean that tells us if we've already read this part of the smb files
-	"""		
-	def readROI(self, data, start_index, loadROI):
-		self._images = []
-		with open(self._dataPath, 'rb') as file:
-			current_position = start_index * (self._width*self._height + SMB_HEADER_SIZE)
+			current_position = 0
+			i = 0
 			file.seek(current_position)
-			for i in range(SEGMENT_SIZE):
-				'''
-				Read SMB header
-				'''
-				smb_header = file.read(SMB_HEADER_SIZE)
-				if not smb_header:
-					break
+			self._nbrFrames = math.ceil(os.stat(dataPath).st_size / (SMB_HEADER_SIZE + self._width*self._height))
 
-				'''
-				Read ROI data
-				'''
-				if loadROI:
+			while True:
+					sys.stdout.write("\rCharging video: %.1f%%" % (i*100 / self._nbrFrames))
+					sys.stdout.flush()
+
+					i += 1
+					'''
+					Read SMB header
+					'''
+					smb_header = file.read(SMB_HEADER_SIZE)
+					if not smb_header:
+						break
+
+					'''
+					Read ROI data
+					'''
 					camera_index = bytearray(file.read(4))
 					camera_index.reverse()
 					camera_index = int.from_bytes(camera_index, byteorder='big')
@@ -120,28 +98,55 @@ class SMB:
 					camera_angle = bytearray(file.read(8))
 					camera_angle = struct.unpack('d', camera_angle)[0]
 
+					self._ROIData.append({'CameraIndex' : camera_index, 'FrameNumber' : frame_number, 'timeStamp' : time_stamp, 'panX' : roi_left, 'panY' : roi_top, 'width' : roi_width, 'height' : roi_height, 'cameraAngle' : camera_angle})
 
-					data[start_index + i] = {'CameraIndex' : camera_index, 'FrameNumber' : frame_number, 'timeStamp' : time_stamp, 'panX' : roi_left, 'panY' : roi_top, 'width' : roi_width, 'height' : roi_height, 'cameraAngle' : camera_angle}
 
-				'''
-				Read image
-				'''
-				file.seek(current_position + SMB_HEADER_SIZE)
+					current_position = current_position + (image_width * image_height) + SMB_HEADER_SIZE
 
-				image = bytearray(file.read(self._width * self._height))
-				image = np.array(image)
-				if image.size == self._width * self._height:
-					image = np.reshape(image, (self._height, self._width))
-				else:
-					image = np.array([])
-				self._images.append(image)
+					'''
+					Jump to the next image
+					'''
+					file.seek(current_position)
+			
+		finally:
+			file.close()
 
-				current_position = current_position + (self._width * self._height) + SMB_HEADER_SIZE
+	def ROIData(self):
+		return self._ROIData
 
-				'''
-				Jump to the next image
-				'''
-				file.seek(current_position)
+
+	"""
+	Reads the file at the current image index
+	Returns the image to read and if it has been read correctly
+	"""
+	def read(self, data, index):
+		image = []
+
+		with open(self._dataPath, 'rb') as file:
+			current_position = index * (self._width*self._height + SMB_HEADER_SIZE)
+			file.seek(current_position)
+
+			'''
+			Read SMB header
+			'''
+			smb_header = file.read(SMB_HEADER_SIZE)
+			if not smb_header:
+				return (False, image)
+
+			'''
+			Read image
+			'''
+			file.seek(current_position + SMB_HEADER_SIZE)
+
+			image = bytearray(file.read(self._width * self._height))
+			image = np.array(image)
+			if image.size == self._width * self._height:
+				image = np.reshape(image, (self._height, self._width))
+				return (True, image)
+			else:
+				image = np.array([])
+				return (False, image)
+
 				
 
 	"""
