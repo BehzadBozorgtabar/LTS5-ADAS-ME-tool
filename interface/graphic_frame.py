@@ -18,6 +18,13 @@ Attributes:
 	- figure: the matplotlib figure which contains the graph
 	- ax: the graph
 	- canvas: the tkinter frame which encapsulates the graph
+
+	- data: the data to plot
+	- ticksSegments: the ticks which seperate each segment
+	- rightBound: the right bound for the x axis
+	
+	- listChoice: a list of the number of segments we wish to plot
+	- nbrSeg: the number of segment we wish to plot chosen from the list above
 """
 class GraphFrame(LabelFrame):
 	
@@ -34,7 +41,7 @@ class GraphFrame(LabelFrame):
 
 		valenceLabel = Label(self, text = "______ Valence", bg = 'white', fg = 'orange')
 		arousalLabel = Label(self, text = "______ Arousal", bg = 'white', fg = 'blue')
-		lastAnnotatedLabel = Label(self, text = "______ Last frame annotated", bg = 'white', fg = 'red')
+		lastAnnotatedLabel = Label(self, text = "______ Segments bounds", bg = 'white', fg = 'red')
 
 		valenceLabel.place(relx = 0.2, rely = 0.05)
 		arousalLabel.place(relx = 0.4, rely = 0.05)
@@ -82,12 +89,8 @@ class GraphFrame(LabelFrame):
 	Plots the graph after an annotation saved
 	Arguments:
 		- data: all annotations done before
-		- firstAnnotated: the frame annotated
-		- lastAnnotated: last frame annotated
-		- currAnnotation: the current frame annotated
-	Be careful:
-		- firstAnnotated and lastAnnotated are the programming indexes of frames
-		- right_bound and left_bound are the real indexes of frames
+		- endFrame: last frame annotated
+		- ticksSegments: the ticks which seperate each annotated segment
 	"""
 	def plotGraph(self, data, endFrame, ticksSegments):
 		self._data = data
@@ -116,7 +119,9 @@ class GraphFrame(LabelFrame):
 
 		self._ax.plot(range(startFrame, endFrame + 1), valence, color = 'orange', linewidth = 5)
 		self._ax.plot(range(startFrame, endFrame + 1), arousal, color = 'blue')
-		self._ax.axvline(x = endFrame, color = 'red', linestyle = 'dashed')
+
+		for x in ticksSegments:
+			self._ax.axvline(x = x, color = 'red', linestyle = 'dashed', linewidth = 4)
 
 		if startFrame == first_frame:
 			startFrame -= 1

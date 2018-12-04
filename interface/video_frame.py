@@ -29,6 +29,7 @@ Attributes:
 	- play: is the video playing ?
 	- end: does the task finish ?
 	- frame: the index frame which is displaying
+	- delayVar: the delay between each call of the update method
 	- lastFrame: the index of the frame we've just displaying before
 	- nbrFrames: the number of frame of the video
 	- startFrame: The lower bound of the segmnent displayed
@@ -268,7 +269,7 @@ class VideoFrame(LabelFrame):
 		else:
 			self._end = True
 			self._nextSegment.config(text = 'Save All and Exit', fg = 'green', state = 'normal', command = self.__saveAll)
-			self._info.config(text = 'You have finished, clic on Save All and Exit below', fg= 'green')
+			self._info.config(text = 'You have finished !!!', fg= 'green')
 
 
 	"""
@@ -439,6 +440,8 @@ class VideoFrame(LabelFrame):
 		#It's not the last frame
 		if not self._end or self._frame.get() < self._nbrFrames:
 			self._info.config(text = "Frame %d/%d" % (self._frame.get(), self._nbrFrames), fg = 'black')
+			if self._nextSegment['text'] == 'Save All and Exit':
+				self._nextSegment.config(text = 'Next segment', fg = 'black', state = 'disabled', command = self.__nextSegment)
 
 	"""
 	Helpers method

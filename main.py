@@ -243,17 +243,16 @@ if __name__ == '__main__':
 		os.system("sudo curlftpfs -o allow_other " + username + ":" + password + "@" + NASIP + " /mnt/NAS")
 		toAnnotatePath = '/mnt/NAS/ADAS&Me/'
 		savePath = '/mnt/NAS/home/'
-		depth_to_remove = len(toAnnotatePath.split('/')) - 1
 	elif hardDrive:
 		username = input("Username: ")
 		driveName = input("Hard drive disk: ")
 		toAnnotatePath = '/media/' + username + '/' + driveName + '/' + input("Initial path: ")
-		depth_to_remove = len(toAnnotatePath.split('/')) - 1
 		savePath = toAnnotatePath
 	else:
 		toAnnotatePath = "data/files/"
 		savePath = defaultSavePath
 
+	depth_to_remove = len(toAnnotatePath.split('/')) - 1
 	toAnnotateList = listDirectories(toAnnotatePath)
 
 	start = Tk()
