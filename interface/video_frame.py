@@ -438,7 +438,7 @@ class VideoFrame(LabelFrame):
 			self._prevSegment['state'] = 'disabled'
 
 		#It's not the last frame
-		if not self._end or self._frame.get() < self._nbrFrames:
+		if (not self._end) or self._frame.get() < self._nbrFrames:
 			self._info.config(text = "Frame %d/%d" % (self._frame.get(), self._nbrFrames), fg = 'black')
 			if self._nextSegment['text'] == 'Save All and Exit':
 				self._nextSegment.config(text = 'Next segment', fg = 'black', state = 'disabled', command = self.__nextSegment)
