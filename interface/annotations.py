@@ -14,6 +14,7 @@ Attributes:
 	- canvas: the canvas which contains the graph
 	- canLabels: a dictionnary which maps an emotion to a text ID
 	- scales: a dictionnary which maps emotions to a scale
+	- defaultConfigurations: a dictionnary which contain the default configuration of the scale for each emotion
 """
 class AnnotatorFrame(LabelFrame):
 	
@@ -104,31 +105,36 @@ class AnnotatorFrame(LabelFrame):
 			 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), text = 'Sadness'),\
 			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 0.5), text = 'Surpise'),\
 				'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45), self.__canH(canHeight, 4.0), text = 'Fear'),\
-				'Neutral' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 4.8), font = ('Purisa', 7), text = 'Neutral'),\
+				'Neutral' : self	._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 4.8), font = ('Purisa', 7), text = 'Neutral'),\
 				'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 2.5), text = 'Disgust')}
 
 
 		#Construct the scales to annotate data
 		self._scales = {}
+		self._defaultConfigurations = {}
 
 		#emotions
 		i = 0 #counter
 		for keys in self._emotions.keys():
 			islowlim = i < nbrScalePerLine
 			modlim = i % nbrScalePerLine
-			s = Scale(self, orient = 'vertical', resolution = 1, tickinterval = 1, variable = self._emotions[keys])
+			self._defaultConfigurations[keys] = { "orient" : 'vertical', "resolution" : 1, "tickinterval" : 1, "from_" : 1, "to" : 0, "variable" : self._emotions[keys] }
+			s = Scale(self, self._defaultConfigurations[keys])
 			l = Label(self, bg = self['bg'], fg = 'black', text = keys)
 
 			if keys == 'Valence':
-				s.config(bg = activeColor, orient = 'horizontal', from_ = -1, to = 1, command = self.__updateScalesState)
+				self._defaultConfigurations[keys].update({"bg" : activeColor, "orient" : 'horizontal', "from_" : -1, "to" : 1, "command" : self.__updateScalesState })
+				s.config(self._defaultConfigurations[keys])
 				s.grid(row = nbrRows - 1, column = nbrScalePerLine, columnspan = nbrCols - nbrScalePerLine, sticky = 'WE')
 				l.grid(row = nbrRows - 1, column = nbrScalePerLine)
 			elif keys == 'Arousal':
-				s.config(bg = activeColor, from_ = 1, to = -1, command = self.__updateScalesState)
+				self._defaultConfigurations[keys].update({"bg" : activeColor, "from_" : 1, "to" : -1, "command" : self.__updateScalesState })
+				s.config(self._defaultConfigurations[keys])
 				s.grid(column = nbrCols, row = 1, rowspan = nbrRows - 2, sticky = 'NS')
 				l.grid(column = nbrCols, row = 0)
 			elif keys == 'Severity':
-				s.config(bg = activeColor, from_ = 4, to = 1)
+				self._defaultConfigurations[keys].update({"bg" : activeColor, "from_" : 4, "to" : 1})
+				s.config(self._defaultConfigurations[keys])
 				s.grid(column = nbrScalePerLine - 1, row = 3, rowspan = 2, sticky = 'NS')
 				l.grid(column = nbrScalePerLine - 1, row = 5, sticky = 'NS')
 			else:
@@ -138,8 +144,32 @@ class AnnotatorFrame(LabelFrame):
 			i += 1
 			self._scales[keys] = s
 
-		reset = Button(self, text = 'reset', command = self.reset)
-		self.reset()
+		self._noAnnotation = Button(self, text = 'Don\'t make annotation', fg = "red", command = self.__setNegatives)
+		self._noAnnotation.grid(row = 0, column = nbrScalePerLine, columnspan = 4, stick = "WE", padx = pad, pady = pad)
+		self._makeAnnotation = True
+		self.__reset()
+
+	"""
+	Helper method to set all scales in red since we don't want to make an annotation
+	"""
+	def __setNegatives(self):
+		self._makeAnnotation = False
+		for scale in self._scales:
+			self._scales[scale].config(bg = "red", from_ = -9, to = -9)
+		self._noAnnotation.config(text = 'Make annotations', fg = "green", command = self.setDefaults)
+
+		for index, ID in self._quarters.items():
+				self._canvas.itemconfigure(ID, fill = inactiveColor)
+
+	"""
+	Helper method to set the state of scales in default configuration
+	"""
+	def setDefaults(self):
+		self._makeAnnotation = True
+		for scale in self._scales:
+			self._scales[scale].config(self._defaultConfigurations[scale])
+		self._noAnnotation.config(text = 'Don\'t make annotations', fg = "red", command = self.__setNegatives)
+		self.__reset()
 
 	"""
 	Helper for creation of arcs to prevent duplication of code.
@@ -158,48 +188,54 @@ class AnnotatorFrame(LabelFrame):
 		data: the list of all annotations done before
 	"""
 	def updateScales(self, data):
-		for keys in valAr:
-			self._emotions[keys].set(data.get(keys, 0))
-
-		self.__updateScalesState()
-
-		for keys in self._emotions.keys():
-			if keys not in valArSev:
+		valence = data.get("Valence", 0)
+		if valence < -1 : 
+			self.__setNegatives()
+		else:
+			self.setDefaults()
+			for keys in valAr:
 				self._emotions[keys].set(data.get(keys, 0))
 
-		self._emotions['Severity'].set(data.get('Severity', 1))
+			self.__updateScalesState()
+
+			for keys in self._emotions.keys():
+				if keys not in valArSev:
+					self._emotions[keys].set(data.get(keys, 0))
+
+			self._emotions['Severity'].set(data.get('Severity', 1))
 
 
 	"""
 	Heper function for update function
 	"""
 	def __updateScalesState(self, newValue = 0):
-		v, a = (self._emotions['Valence'].get(), self._emotions['Arousal'].get())
+		if self._makeAnnotation: 
+			v, a = (self._emotions['Valence'].get(), self._emotions['Arousal'].get())
 
-		for index, ID in self._quarters.items():
-			if (v,a) == index:
-				self._canvas.itemconfigure(ID, fill = activeColor)
-			else:
-				self._canvas.itemconfigure(ID, fill = inactiveColor)	
-
-		
-		for emotion in self._emotions.keys():
-			if emotion not in valArSev:
-				toSetNormal = self._valarRelations[(v,a)]
-
-				if emotion in toSetNormal:
-					self.__changeState(emotion, 'normal')
+			for index, ID in self._quarters.items():
+				if (v,a) == index:
+					self._canvas.itemconfigure(ID, fill = activeColor)
 				else:
-					self.__changeState(emotion, 'disabled')
-			elif emotion == 'Severity':
-				if v == -1:
-					self._scales['Severity'].config(from_ = 4, to = 3)
-					self._emotions['Severity'].set(3)
-				elif v == 0:
-					self._scales['Severity'].config(from_ = 2, to = 1)
-					self._emotions['Severity'].set(1)
-				else:
-					self._scales['Severity'].config(from_ = 2, to = 2)
+					self._canvas.itemconfigure(ID, fill = inactiveColor)	
+
+			
+			for emotion in self._emotions.keys():
+				if emotion not in valArSev:
+					toSetNormal = self._valarRelations[(v,a)]
+
+					if emotion in toSetNormal:
+						self.__changeState(emotion, 'normal')
+					else:
+						self.__changeState(emotion, 'disabled')
+				elif emotion == 'Severity':
+					if v == -1:
+						self._scales['Severity'].config(from_ = 4, to = 3)
+						self._emotions['Severity'].set(3)
+					elif v == 0:
+						self._scales['Severity'].config(from_ = 2, to = 1)
+						self._emotions['Severity'].set(1)
+					else:
+						self._scales['Severity'].config(from_ = 2, to = 2)
 			
 			
 
@@ -229,7 +265,7 @@ class AnnotatorFrame(LabelFrame):
 	"""
 	Reset the scales' state
 	"""
-	def reset(self):
+	def __reset(self):
 		for keys in self._emotions.keys():
 			self._emotions[keys].set(0)
 		self._emotions['Arousal'].set(0)

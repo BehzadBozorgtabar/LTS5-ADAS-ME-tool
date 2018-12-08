@@ -3,23 +3,34 @@ from tkinter import *
 from interface.video_frame import VideoFrame
 from interface.annotations import AnnotatorFrame
 from interface.graphic_frame import GraphFrame
+from ReadSMBBinaryFile.extract_roi_data import SMB
 from interface.data import *
 
 #Python modules
 import os
-import csv
-from getpass import getpass
+import numpy as np
 
 
 """
 Draws annotation interface.
 Argument:
 	- file_to_annotate: the location of the data
-	- network: are we working with NAS server ?
 	- savePath: The path where we save the annotation
 """
-def draw_annotation_interface(file_to_annotate, network, savePath):
+def draw_annotation_interface(file_to_annotate, savePath):
+
+	#opens the video file
+	video = 0
+	vidWidth = 0
+	vidHeight = 0
 	
+	video = SMB(file_to_annotate)
+	vidWidth, vidHeight = video.imageParams()
+
+	nbrFrames = video.get(NBR_FRAMES)
+	part = video.part()
+
+	# Setup interface
 	main_nbr_rows = 10
 	main_nbr_cols = 10
 	
@@ -43,7 +54,7 @@ def draw_annotation_interface(file_to_annotate, network, savePath):
 	for x in range(0, main_nbr_cols):
 		interface.columnconfigure(x, weight=1)
 
-	# Frames
+	# Panels
 	annotator_frame = AnnotatorFrame(interface, fg = 'black', text = "2. Annotation")
 	annotator_frame.grid(row = 0, rowspan = 6, column = 5, columnspan = 5, padx = pad, pady = pad, sticky = stick)
 	annotator_frame.grid_propagate(0)
@@ -52,7 +63,7 @@ def draw_annotation_interface(file_to_annotate, network, savePath):
 	graph_frame.grid(row = 6, rowspan = 4, column = 5, columnspan = 5, padx = pad, pady = pad, sticky = stick)
 	graph_frame.grid_propagate(0)
 
-	video_frame = VideoFrame(interface, file_to_annotate, savePath, annotator_frame, graph_frame, bg = "green", fg = 'white', text = "1. Data")
+	video_frame = VideoFrame(interface, file_to_annotate, savePath, annotator_frame, graph_frame, video, vidWidth, vidHeight, part, nbrFrames, bg = "green", fg = 'white', text = "1. Data")
 	video_frame.grid(row = 0, rowspan = 10, column = 0, columnspan = 5, padx = 5, pady = 5, sticky = stick)
 	video_frame.grid_propagate(0)
 
@@ -61,9 +72,6 @@ def draw_annotation_interface(file_to_annotate, network, savePath):
 	except KeyboardInterrupt:
 		interface.destroy()
 		exit()
-	finally:
-		if network:
-			os.system("sudo umount /mnt/NAS")
 
 
 """
@@ -75,7 +83,6 @@ Attributes:
 	- dirList: file or directories shown on the listbox
 	- depth: the actual depth in the repository from the initial actual:location(see constructor)
 	- depth_to_remove: the depth from / directory to the initial path the user wanted to be in
-	- network: Are we working with NAS server ?
 	- savePath: The path where we save the annotation
 	
 	- exit: exit Button to exit application
@@ -93,9 +100,8 @@ class AnnotationStarter(Frame):
 		- actual_location: the actual location of the user in the server or local repository
 		
 		- depth_to_remove: the depth from / directory to the initial path the user wanted to be in
-		- network: Are we working with NAS server ?
 	"""
-	def __init__(self, parent, listToAnnotate, actual_location, savePath, depth_to_remove, network, **kwargs):
+	def __init__(self, parent, listToAnnotate, actual_location, savePath, depth_to_remove, **kwargs):
 		Frame.__init__(self, parent, **kwargs)
 
 		self._parent = parent
@@ -110,7 +116,6 @@ class AnnotationStarter(Frame):
 		self._dirList = listToAnnotate
 		self._depth = 0
 		self._depth_to_remove = depth_to_remove
-		self._network = network
 		self._savePath = savePath
 		
 		#configuration of the grid task manager
@@ -155,8 +160,8 @@ class AnnotationStarter(Frame):
 		toAnnotatePath: the actual location of the user in the server or local repository
 	"""
 	def __validate_command(self):
-		smbCsv = self._filename[-4:]
-		if not (smbCsv == '.smb' or smbCsv == '.csv'):
+		smb = self._filename[-4:]
+		if not (smb == '.smb'):
 			self._validate['state'] = 'disabled'
 			self._depth += 1
 			self._back['state'] = 'normal'
@@ -168,7 +173,7 @@ class AnnotationStarter(Frame):
 		else:
 			self._back['state'] = 'disabled'
 			self._parent.destroy()
-			draw_annotation_interface(self._toAnnotatePath + self._filename, self._network, self._savePath + self._filename)
+			draw_annotation_interface(self._toAnnotatePath + self._filename, self._savePath + self._filename)
 
 	"""
 	Select method, sets filename[0] to the selected element
@@ -206,7 +211,7 @@ def listDirectories(path):
 	list = []
 	try:
 		list = os.listdir(path)
-		list = [x for x in list if (os.path.isdir(path + x) or x.endswith(".smb") or (x.endswith(".csv") and os.path.exists(path + x[:-4] + '.avi')))]
+		list = [x for x in list if (os.path.isdir(path + x) or x.endswith(".smb"))]
 	except FileNotFoundError:
 		print("The path", path, "doesn't exist! The application will shut down!")
 		exit()
@@ -214,43 +219,14 @@ def listDirectories(path):
 	
 
 """
-The main program, setups the state of the program in the terminal (HardDrive disk or local repository)
+The main program
 """
 if __name__ == '__main__':
 
 	toAnnotateList = [] #List all data to annotate in the directory
-	toAnnotatePath = "" #The path we have to follow to fetch the data
-	savePath = "" #The path to save the annotation
-	ans = "" #The answer of the user
-	username = "" #The user'linux username (home folder's name)
-	hardDrive = "" #The hard drive'name we want to access
+	toAnnotatePath = "data/files/" #The path we have to follow to fetch the data
+	savePath = defaultSavePath #The path to save the annotation
 	depth_to_remove = 0 #we remove the depth od the initial toAnnotatePath
-
-	while ans not in [1,2,3]:
-		ask = "In which workspace do you want to work ?"
-		ask += "\n	1. On NAS server (Make sure you're connecting to EPFL VPN if you're not using EPFL WIFI. It may run very slow !)"
-		ask += "\n	2. On a hard drive disk (You'll need to provide your repository username and hard drive disk name)"
-		ask += "\n	3. On local repository"
-		ask += "\n Answer (1\\2\\3) : "
-		ans = int(input(ask))
-
-	network = ans == 1 #Are we working with the server ?
-	hardDrive = ans == 2
-
-	if network:
-		username = input("Username: ") 
-		password = getpass()
-		os.system("sudo curlftpfs -o allow_other " + username + ":" + password + "@" + NASIP + " /mnt/NAS")
-		toAnnotatePath = '/mnt/NAS/ADAS&Me/'
-		savePath = '/mnt/NAS/home/'
-	elif hardDrive:
-		username = input("Username: ")
-		driveName = input("Hard drive disk: ")
-		toAnnotatePath = '/media/' + username + '/' + driveName + '/' + input("Initial path: ")
-		savePath = toAnnotatePath
-	else:
-		toAnnotatePath = "data/files/"
-		savePath = defaultSavePath
 
 	depth_to_remove = len(toAnnotatePath.split('/')) - 1
 	toAnnotateList = listDirectories(toAnnotatePath)
@@ -264,15 +240,12 @@ if __name__ == '__main__':
 	start['bg'] = 'black'
 	start.resizable(width = False, height = False)
 	
-	interface = AnnotationStarter(start, toAnnotateList, toAnnotatePath, savePath, depth_to_remove, network)
+	interface = AnnotationStarter(start, toAnnotateList, toAnnotatePath, savePath, depth_to_remove)
 
 	try:
 		interface.mainloop()
 	except KeyboardInterrupt:
 		interface.destroy()
 		exit()
-	finally:
-		if network:
-			os.system("sudo umount /mnt/NAS")
 	
 		
