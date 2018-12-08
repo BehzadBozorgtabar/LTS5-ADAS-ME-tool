@@ -5,91 +5,64 @@ README to know how to use well this Emotion Recognition Annotation Tool.
 
 1. Load data:
 	
-	For now, you can:
-
-	a)
-		Put your data files in the data/files/ folder.
-
-	b)
-		Put your data in a hard drive disk
-
-	c)
-		Don't load data, you want to access them on NAS server
-
-	Requirements: The data files have to be .csv files or .smb ones. For a csv file, you must import the associated video file (.avi only) beside.
+	Put the smb files in the data/files/ folder of the tool repository
 
 2. Requirements:
 
-	You need to have the following python libraries installed:
+	You need to use Python3 and have the following python libraries installed:
 		- matplotlib
 		- tkinter
 		- cv2
 		- csv
 		- numpy
-
-	You need to know that to access on the NAS server, the program will mount the server on /mnt/NAS folder in the repository:
-	
-		1)	You need to install curlftpfs for linux (sudo apt install curlftpfs)
-		
-		2)	You need to create the /mnt/NAS directory (sudo mkdir /mnt/server)
 	
 
 3. Start the application:
 	
-	On linux, type in the terminal in lts5-ada-me folder: python3 main.py \ 
+	Type "python3 main.py" in the lts5-ada-me folder and tap enter
 	
-	While starting, the termial will ask you how you want to access the data:
-	
-		1)	With NAS server (You need to use EPFL wifi or connect to the EPFL VPN). Your access username and password will be asked. Also, to mount the server, the program has to run a terminal command with sudo. You have to type your linux password if you want to continue)
-		
-		2)	With a hard drive disk (You need to provide your linux username and your hard drive disk name. Also, you can provide a path to follow in your hard drive disk (Enter if you want to skip this step)
-		
-		3)	On your local repository in the data/files/ folder
-
-	The best to do is to load data on a hard drive disk since the data is heavy. Run the program on the NAS server is very slow.
-
-	Once you've finished this step, a window with a list of folders will be displayed.
 
 4. Choose a file:
 
-	Choose a .smb or a .cvs file to annotate the corresponding video and clic on validate.
+	1) Choose a .smb file to annotate the corresponding video and clic on validate.
 
-	Your can exit this window at any moment.
+	2) The file will likely be too big. The terminal will display a message asking you to choose which part of the file you want to annotate. You have to type a number (1 for first part, 2 for second part, etc...) and tap enter
 
-5. Annotate:
-	
-	First, annotate the valence and arousal with help of the graph that shows you the previous segments annotated.
+5. Annotate Task
+
+	1) Play the video for the 5 frames
+
+	If either the emotion isn't the same in the 5 frames segments or all frames are not valid (we can't identify correctly the face on the screen), please annotate frame by frame (using the next and previous frame buttons)
+
+	2) If a frame isn't valid, click on "Don't make annotation", all values will be set to -9
+
+	Otherwise, annotate the valence and arousal with the corresponding assumptions:
 	
 	Valence: {-1: Negative, 0: Neutral, 1: Positive}
 
 	Arousal: {-1: asleep, 0: Normal, 1: Explosive}
 
+
+	3) Annotate the severity with the corresponding assumptions:
+
+	Severity: {1: Neutral, 2: Positive, 3: Frustration, 4; Anxiety}
+
+	4) If you recognize one of the seven basics emotion, set the value to one with the corresponding slide bar.
+
+	5) When the segment is finished, click on the save Button and then on Next Segment and restart the process
+
+
+	IMPORTANT: If you want to annotate frame by frame, you have to save your annotation for the first frame before set a new annotation for the next one. Look at the save Button which will inform you which frame or group of frame you're annotating.
+
 	
-	Then, you can annotate the corresponding emotions to have more precision.
+	6) Finally there is a graph which plots the saved annotations you've done for valence and arousal. It could help you to follow the trend of an emotion and find the correct annotation based on the previous ones
 
-	Don't forget to annotate the severity with the following asumption : {1: Neutral, 2: Positive, 3: Frustration, 4; Anxiety}.
-	
-	Have a look to the save button, it will inform you which segment you're annotating. To choose the segment, use the slide bar.
-
-	You always have to save an entire segment before go to the next one.
-	
-	In this version you can't quit the application and continue your current annotation later. You have to annotate all before Save All and Quit.
-
-
-	Some informations you need to know to handle the data are:
-
-		1)	There is a slide bar with values 1, 2, 3, 4, 5 on the data panel. You can set the speed of the video with it. 1 for very slow and 5 for fast
-		2)	The radioButtons on the graph correspond to the number of previous segment annotated you want to show
-		3)	When you're saving an annotation and the difference between the current frame and the starting frame is greater than 20, the video segment is cut at the current frame.
+	7) When you've annotated al frames, click on the Save all and exit button which will replace the next Segment Button
 
 
 6. Fetch annotated data:
 
-	All annotated data is in the data/annotated folder.
+	All annotated data is in the data/files folder
 
-	They are .csv files with the same name as file input followed by annotated
-
-	If you've annotated on a hard drive, a .csv file has been saved on the same location of the initial file.
-
-	If you've annotated on the NAS server, a .csv file has been saved on your /home/ directory on the server.
+	They are .csv files with the same name as file input followed by _annotated
 		
