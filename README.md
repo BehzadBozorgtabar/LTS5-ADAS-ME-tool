@@ -45,7 +45,7 @@ README to know how to use well this Emotion Recognition Annotation Tool.
 	Below is the graph associated which may help you to annotate correctly.
 
 
-![](screenshot/valAr.jpeg)
+![](screenshot/valAr.png)
 [1]  A. Mollahosseini, B. Hasani and M. H. Mahoor, "AffectNet: A Database for Facial Expression, Valence, and Arousal Computing in the Wild", p2 fig1
 
 
@@ -60,10 +60,7 @@ README to know how to use well this Emotion Recognition Annotation Tool.
 		
 		2) valence = -1 and arousal = -1, you have the choice between neutral and anxiety. Just notice that if the driver looks bored or tired, please annotate the severity as 1 (neutral). If the driver looks sad, depressed or anxious, please annotate the severity as 4 (anxiety)
 
-		3) valence = -1 and arousal = 0, you have the choice between frustrated and anxiety. Below, there are two images which can help you to distinguish the two. The first one is frustration and the second one is anxiety.
-
-![](screenshot/frustrated.jpeg)
-![](screenshot/anxiety.jpeg)
+		3) valence = -1 and arousal = 0, you have the choice between frustrated and anxiety. Below, there are two images which can help you to distinguish the two.
 
 	4) If you recognize one of the seven basics emotion, set the value to one with the corresponding slide bar.
 
