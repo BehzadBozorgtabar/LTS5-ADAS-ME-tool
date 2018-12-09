@@ -42,7 +42,7 @@ class AnnotatorFrame(LabelFrame):
 
 		self._valarRelations = { (-1,-1): ['Sadness'],\
 					 (-1,0): ['Fear', 'Disgust', 'Sadness'],\
-					 (-1,1): ['Fear', 'Anger', 'Disgust'],\
+					 (-1,1): ['Fear', 'Anger', 'Disgust', 'Surprise'],\
 					 (0,-1): ['Neutral'],\
 					 (0,0): ['Neutral'],\
 					 (0,1): ['Surprise'],\
@@ -103,7 +103,7 @@ class AnnotatorFrame(LabelFrame):
 		self._canLabels = {'Joy' : self._canvas.create_text(self.__canH(canWidth, 8.25 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 3.0), text = 'Joy'),\
 				'Anger' : self._canvas.create_text(self.__canH(canWidth, 2+ MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 1.25), text = 'Anger'),\
 			 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.85 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 7.0), text = 'Sadness'),\
-			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 5 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 0.5), text = 'Surprise'),\
+			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 0.5), text = 'Surprise'),\
 				'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 4.0), text = 'Fear'),\
 				'Neutral' : self	._canvas.create_text(self.__canH(canWidth, 4.5 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 4.8), font = ('Purisa', 7), text = 'Neutral'),\
 				'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.5 + MACOS_GRAPHIC_MARGIN), self.__canH(canHeight, 3), text = 'Disgust'),\
