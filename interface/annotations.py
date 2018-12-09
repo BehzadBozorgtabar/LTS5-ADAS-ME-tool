@@ -101,12 +101,15 @@ class AnnotatorFrame(LabelFrame):
 								self.__canH(canWidth, 7.85), self.__canH(canHeight, 8.0), start = 270, extent = 90)
 
 		self._canLabels = {'Joy' : self._canvas.create_text(self.__canH(canWidth, 8.25), self.__canH(canHeight, 3.0), text = 'Joy'),\
-				'Anger' : self._canvas.create_text(self.__canH(canWidth, 1.5), self.__canH(canHeight, 1.5), text = 'Anger'),\
-			 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), text = 'Sadness'),\
-			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 0.5), text = 'Surpise'),\
+				'Anger' : self._canvas.create_text(self.__canH(canWidth, 2), self.__canH(canHeight, 1.25), text = 'Anger'),\
+			 	'Sadness' : self._canvas.create_text(self.__canH(canWidth, 0.80), self.__canH(canHeight, 6.0), text = 'Sadness'),\
+			 	'Surprise' : self._canvas.create_text(self.__canH(canWidth, 5), self.__canH(canHeight, 0.5), text = 'Surprise'),\
 				'Fear' : self._canvas.create_text(self.__canH(canWidth, 0.45), self.__canH(canHeight, 4.0), text = 'Fear'),\
 				'Neutral' : self	._canvas.create_text(self.__canH(canWidth, 4.5), self.__canH(canHeight, 4.8), font = ('Purisa', 7), text = 'Neutral'),\
-				'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 2.5), text = 'Disgust')}
+				'Disgust' : self._canvas.create_text(self.__canH(canWidth, 0.7), self.__canH(canHeight, 3.0), text = 'Disgust'),\
+				'Positive': self._canvas.create_text(self.__canH(canWidth, 8.5), self.__canH(canHeight, 4.5), font = ('Purisa', 8), text = 'Positive'),\
+				'Frustrated': self._canvas.create_text(self.__canH(canWidth, 1.0), self.__canH(canHeight, 2.0), font = ('Purisa', 8), text = 'Frustrated'),\
+				'Anxiety' : self._canvas.create_text(self.__canH(canWidth, 0.65), self.__canH(canHeight, 5.0), font = ('Purisa', 8), text = 'Anxiety')}
 
 
 		#Construct the scales to annotate data
@@ -126,7 +129,7 @@ class AnnotatorFrame(LabelFrame):
 				self._defaultConfigurations[keys].update({"bg" : activeColor, "orient" : 'horizontal', "from_" : -1, "to" : 1, "command" : self.__updateScalesState })
 				s.config(self._defaultConfigurations[keys])
 				s.grid(row = nbrRows - 1, column = nbrScalePerLine, columnspan = nbrCols - nbrScalePerLine, sticky = 'WE')
-				l.grid(row = nbrRows - 1, column = nbrScalePerLine)
+				l.place(x = 300, y = 300)
 			elif keys == 'Arousal':
 				self._defaultConfigurations[keys].update({"bg" : activeColor, "from_" : 1, "to" : -1, "command" : self.__updateScalesState })
 				s.config(self._defaultConfigurations[keys])
@@ -144,8 +147,8 @@ class AnnotatorFrame(LabelFrame):
 			i += 1
 			self._scales[keys] = s
 
-		self._noAnnotation = Button(self, text = 'Don\'t make annotation', fg = "red", command = self.__setNegatives)
-		self._noAnnotation.grid(row = 0, column = nbrScalePerLine, columnspan = 4, stick = "WE", padx = pad, pady = pad)
+		self._noAnnotation = Button(self, text = 'Not valid', fg = "red", command = self.__setNegatives)
+		self._noAnnotation.grid(row = 0, column = nbrScalePerLine, columnspan = 5, stick = "WE", padx = pad, pady = pad)
 		self._makeAnnotation = True
 		self.__reset()
 
@@ -155,8 +158,8 @@ class AnnotatorFrame(LabelFrame):
 	def __setNegatives(self):
 		self._makeAnnotation = False
 		for scale in self._scales:
-			self._scales[scale].config(bg = "red", from_ = -9, to = -9)
-		self._noAnnotation.config(text = 'Make annotations', fg = "green", command = self.setDefaults)
+			self._scales[scale].config(bg = "red", from_ = -999, to = -999, tickinterval = 0)
+		self._noAnnotation.config(text = 'Valid', fg = "green", command = self.setDefaults)
 
 		for index, ID in self._quarters.items():
 				self._canvas.itemconfigure(ID, fill = inactiveColor)
@@ -168,7 +171,7 @@ class AnnotatorFrame(LabelFrame):
 		self._makeAnnotation = True
 		for scale in self._scales:
 			self._scales[scale].config(self._defaultConfigurations[scale])
-		self._noAnnotation.config(text = 'Don\'t make annotations', fg = "red", command = self.__setNegatives)
+		self._noAnnotation.config(text = 'Not valid', fg = "red", command = self.__setNegatives)
 		self.__reset()
 
 	"""
@@ -228,15 +231,33 @@ class AnnotatorFrame(LabelFrame):
 					else:
 						self.__changeState(emotion, 'disabled')
 				elif emotion == 'Severity':
-					if v == -1:
-						self._scales['Severity'].config(from_ = 4, to = 3)
-						self._emotions['Severity'].set(3)
-					elif v == 0:
-						self._scales['Severity'].config(from_ = 2, to = 1)
-						self._emotions['Severity'].set(1)
+					if v == -1 and a == -1:
+						self._scales['Severity'].config(from_ = 4, to = 1, tickinterval = 3, command = self.__resolution3)
+						self._emotions['Severity'].set(4)
 					else:
-						self._scales['Severity'].config(from_ = 2, to = 2)
-			
+						self._scales['Severity'].config(tickinterval = 1,command = lambda x: None)
+						
+						if v == -1 and a == 0:
+							self._scales['Severity'].config(from_ = 4, to = 3)
+							self._emotions['Severity'].set(3)
+						elif v == -1 and a == 1:
+							self._scales['Severity'].config(from_ = 3, to = 3)
+						elif v == 0 and a <= 0:
+							self._scales['Severity'].config(from_ = 1, to = 1)
+						elif v == 0 and a == 1:
+							self._scales['Severity'].config(from_ = 2, to = 1)
+							self._emotions['Severity'].set(1)
+						else:
+							self._scales['Severity'].config(from_ = 2, to = 2)
+
+	"""
+	Correct a tkinter bug to set resolution 3 from 4 to 1 with scale bar
+	"""
+	def __resolution3(self, n):
+		if int(n) < 3:
+			self._emotions['Severity'].set(1)
+		else:
+			self._emotions['Severity'].set(4)
 			
 
 	"""
