@@ -33,3 +33,4 @@ Arousal = 1
 CanvasID = 2
 valAr = ['Valence', 'Arousal']
 valArSev = ['Valence', 'Arousal', 'Severity']
+MACOS_GRAPHIC_MARGIN = 0.5
